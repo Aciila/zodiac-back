@@ -274,14 +274,15 @@ app.post("/api/zodiac-prediction", async (c) => {
       transactionData: walletData?.transactions,
       astrologyData: astrologyData || undefined,
       userMessage,
+      zodiacKey: zodiacKey || undefined,
     });
 
     // Use AI with system prompt for crypto-astrologer
     const tempAiService = new AIService({
       apiKey: process.env.OPENAI_API_KEY || "",
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini", // Better model for following complex instructions
       temperature: 0.8, // A bit more creativity for predictions
-      max_completion_tokens: 4000, // Increased to ensure AI has enough space for all metrics
+      max_completion_tokens: 6000, // Increased to ensure AI has enough space for detailed predictions
       systemPrompt: ZODIAC_PREDICTION_SYSTEM_PROMPT,
     });
 
@@ -317,10 +318,9 @@ app.post("/api/zodiac-prediction", async (c) => {
       );
     }
 
-    // Remove metrics section from message text (to avoid duplication)
-    const cleanMessage = detailedMetrics
-      ? removeMetricsFromText(aiResponse.response)
-      : aiResponse.response;
+    // ALWAYS remove metrics section from message text (to avoid duplication)
+    // Even if parsing failed, we still want to remove the metrics text
+    const cleanMessage = removeMetricsFromText(aiResponse.response);
 
     // Build response
     const response: any = {

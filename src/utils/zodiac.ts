@@ -19,12 +19,7 @@ export const ZODIAC_SIGNS: Record<string, ZodiacSign> = {
     emoji: "♉",
     dates: "April 20 - May 20",
     element: "Earth",
-    traits: [
-      "stable",
-      "patient",
-      "loves to HODL",
-      "hates volatility",
-    ],
+    traits: ["stable", "patient", "loves to HODL", "hates volatility"],
   },
   gemini: {
     sign: "Gemini",
@@ -43,12 +38,7 @@ export const ZODIAC_SIGNS: Record<string, ZodiacSign> = {
     emoji: "♋",
     dates: "June 21 - July 22",
     element: "Water",
-    traits: [
-      "emotional",
-      "cautious",
-      "holds stablecoins",
-      "panics on dips",
-    ],
+    traits: ["emotional", "cautious", "holds stablecoins", "panics on dips"],
   },
   leo: {
     sign: "Leo",
@@ -62,7 +52,12 @@ export const ZODIAC_SIGNS: Record<string, ZodiacSign> = {
     emoji: "♍",
     dates: "August 23 - September 22",
     element: "Earth",
-    traits: ["analytical", "perfectionist", "reads whitepapers", "DCA strategy"],
+    traits: [
+      "analytical",
+      "perfectionist",
+      "reads whitepapers",
+      "DCA strategy",
+    ],
   },
   libra: {
     sign: "Libra",
@@ -72,8 +67,14 @@ export const ZODIAC_SIGNS: Record<string, ZodiacSign> = {
     traits: [
       "balanced",
       "diplomatic",
-      "diversifies",
-      "can't choose between BTC and ETH",
+      "analytical",
+      "aesthetic-driven",
+      "harmony-seeking",
+      "slow to enter trades",
+      "logical over emotional",
+      "prefers reliable tokens",
+      "medium risk tolerance",
+      "clean portfolio lover",
     ],
   },
   scorpio: {
@@ -117,12 +118,7 @@ export const ZODIAC_SIGNS: Record<string, ZodiacSign> = {
     emoji: "♒",
     dates: "January 20 - February 18",
     element: "Air",
-    traits: [
-      "innovative",
-      "independent",
-      "early DeFi adopter",
-      "loves Web3",
-    ],
+    traits: ["innovative", "independent", "early DeFi adopter", "loves Web3"],
   },
   pisces: {
     sign: "Pisces",
@@ -180,13 +176,13 @@ export function isValidBirthDate(birthDate: string): boolean {
 export function normalizeBirthDate(birthDate: string): string {
   const date = new Date(birthDate);
   const now = new Date();
-  
+
   // Якщо дата в майбутньому, віднімаємо 100 років
   if (date > now) {
     date.setFullYear(date.getFullYear() - 100);
   }
-  
-  return date.toISOString().split('T')[0];
+
+  return date.toISOString().split("T")[0];
 }
 
 /**

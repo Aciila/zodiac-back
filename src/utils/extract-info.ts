@@ -346,6 +346,20 @@ export function extractDetailedTradingMetrics(
           `\\s+-\\s+Tip:\\s*(.+?)(?=\\n\\n|\\n-|\\n\\*\\*|$)`,
         "is"
       ),
+      // Pattern 3: without dash before Description/Tip (AI's current format)
+      new RegExp(
+        `\\*\\*${metricName}:\\*\\*\\s*(\\d+)/10[^\\n]*\\n` +
+          `\\s+Description:\\s*([^\\n]+?)\\n` +
+          `\\s+Tip:\\s*(.+?)(?=\\n\\n|\\n-|\\n\\*\\*|$)`,
+        "is"
+      ),
+      // Pattern 4: with spaces but no dash
+      new RegExp(
+        `\\*\\*${metricName}:\\*\\*\\s*(\\d+)/10[^\\n]*\\n` +
+          `\\s*Description:\\s*([^\\n]+?)\\n` +
+          `\\s*Tip:\\s*(.+?)(?=\\n\\n|\\n-|\\n\\*\\*|$)`,
+        "is"
+      ),
     ];
 
     let match = null;
@@ -498,7 +512,40 @@ function extractField(text: string, fieldPattern: string): string | undefined {
  * This prevents duplication since metrics are returned as a separate object
  */
 export function removeMetricsFromText(text: string): string {
-  // Remove everything from "Trading Profile Metrics:" onwards
-  const metricsPattern = /\*\*📊\s*Trading Profile Metrics:\*\*[\s\S]*$/i;
-  return text.replace(metricsPattern, "").trim();
+  // Try multiple patterns to catch different variations
+  const patterns = [
+    // Pattern 1: With emoji and **
+    /\*\*📊\s*Trading Profile Metrics:\*\*[\s\S]*$/i,
+    // Pattern 2: Without emoji
+    /\*\*Trading Profile Metrics:\*\*[\s\S]*$/i,
+    // Pattern 3: With different spacing
+    /📊\s*\*\*Trading Profile Metrics:\*\*[\s\S]*$/i,
+    // Pattern 4: Just the heading without **
+    /Trading Profile Metrics:[\s\S]*$/i,
+    // Pattern 5: With ### markdown heading
+    /###\s*📊\s*Trading Profile Metrics[\s\S]*$/i,
+    // Pattern 6: With ## markdown heading
+    /##\s*📊\s*Trading Profile Metrics[\s\S]*$/i,
+    // Pattern 7: Catch any line starting with "**📊"
+    /\n\*\*📊[\s\S]*$/i,
+    // Pattern 8: Catch metrics section with newlines before
+    /\n+\*\*📊\s*Trading Profile Metrics[\s\S]*$/i,
+    // Pattern 9: Very aggressive - remove from "- **Risk appetite:**" onwards
+    /\n-\s*\*\*Risk appetite:\*\*[\s\S]*$/i,
+  ];
+
+  let cleanedText = text;
+  for (const pattern of patterns) {
+    const match = cleanedText.match(pattern);
+    if (match) {
+      cleanedText = cleanedText.replace(pattern, "").trim();
+      console.log("✂️ Removed metrics section using pattern:", pattern.source);
+      break;
+    }
+  }
+
+  // Final cleanup: remove trailing dashes and empty lines
+  cleanedText = cleanedText.replace(/\n+---+\s*$/g, "").trim();
+
+  return cleanedText;
 }
