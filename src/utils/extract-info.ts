@@ -24,6 +24,37 @@ export interface DetailedTradingMetrics {
   defiComplexityTolerance: MetricDetail;
 }
 
+export interface OverallMarketSection {
+  trend?: string;
+  zodiacInfluence?: string;
+  recommendation?: string;
+}
+
+export interface TradingSection {
+  bestDays?: string[];
+  riskLevel?: string;
+  strategy?: string;
+}
+
+export interface DeFiSection {
+  favorableProtocols?: string[];
+  yieldStrategy?: string;
+  warning?: string;
+}
+
+export interface BalancesSection {
+  recommendation?: string;
+  rebalanceAdvice?: string;
+  holdVsSell?: string;
+}
+
+export interface AstrologyInsights {
+  overallMarket?: OverallMarketSection;
+  trading?: TradingSection;
+  defi?: DeFiSection;
+  balances?: BalancesSection;
+}
+
 // Legacy types for backward compatibility
 export interface TradingMetrics {
   riskAppetite: number;
@@ -369,6 +400,97 @@ export function extractDetailedTradingMetrics(
     Object.keys(metrics)
   );
   return null;
+}
+
+/**
+ * Extracts astrology insights sections from AI response
+ * Looks for: Overall Market, Trading, DeFi, Balances sections
+ */
+export function extractAstrologyInsights(text: string): AstrologyInsights | null {
+  const insights: AstrologyInsights = {};
+  
+  // Extract Overall Market section
+  const overallMarketMatch = text.match(
+    /📊\s*1\.\s*Overall Market[^\n]*\n([\s\S]*?)(?=📈\s*2\.\s*Trading|📊\s*Trading Profile Metrics|$)/i
+  );
+  if (overallMarketMatch) {
+    const section = overallMarketMatch[1];
+    insights.overallMarket = {
+      trend: extractField(section, "trend"),
+      zodiacInfluence: extractField(section, "zodiac influence"),
+      recommendation: extractField(section, "recommendation"),
+    };
+  }
+
+  // Extract Trading section
+  const tradingMatch = text.match(
+    /📈\s*2\.\s*Trading[^\n]*\n([\s\S]*?)(?=🏦\s*3\.\s*DeFi|📊\s*Trading Profile Metrics|$)/i
+  );
+  if (tradingMatch) {
+    const section = tradingMatch[1];
+    const bestDaysText = extractField(section, "best.*days");
+    insights.trading = {
+      bestDays: bestDaysText ? bestDaysText.split(/,\s*/).map(d => d.trim()) : undefined,
+      riskLevel: extractField(section, "risk level"),
+      strategy: extractField(section, "strategy"),
+    };
+  }
+
+  // Extract DeFi section
+  const defiMatch = text.match(
+    /🏦\s*3\.\s*DeFi[^\n]*\n([\s\S]*?)(?=💰\s*4\.\s*Balances|📊\s*Trading Profile Metrics|$)/i
+  );
+  if (defiMatch) {
+    const section = defiMatch[1];
+    const protocolsText = extractField(section, "protocols?");
+    insights.defi = {
+      favorableProtocols: protocolsText ? protocolsText.split(/,\s*/).map(p => p.trim()) : undefined,
+      yieldStrategy: extractField(section, "yield.*strategy"),
+      warning: extractField(section, "warning"),
+    };
+  }
+
+  // Extract Balances section
+  const balancesMatch = text.match(
+    /💰\s*4\.\s*Balances[^\n]*\n([\s\S]*?)(?=📊\s*Trading Profile Metrics|$)/i
+  );
+  if (balancesMatch) {
+    const section = balancesMatch[1];
+    insights.balances = {
+      recommendation: extractField(section, "recommendation"),
+      rebalanceAdvice: extractField(section, "rebalanc"),
+      holdVsSell: extractField(section, "hold.*sell"),
+    };
+  }
+
+  // Return insights if at least one section was found
+  const foundSections = Object.keys(insights).length;
+  if (foundSections > 0) {
+    console.log(`✅ Extracted ${foundSections}/4 astrology insight sections`);
+    return insights;
+  }
+
+  console.warn("⚠️ No astrology insight sections found in AI response");
+  return null;
+}
+
+/**
+ * Helper function to extract a field value from text
+ */
+function extractField(text: string, fieldPattern: string): string | undefined {
+  // Try multiple patterns: "Field: value", "**Field:** value", "- Field: value"
+  const patterns = [
+    new RegExp(`[-*\\s]*${fieldPattern}\\s*:?\\s*([^\\n]+)`, "i"),
+    new RegExp(`\\*\\*${fieldPattern}\\*\\*\\s*:?\\s*([^\\n]+)`, "i"),
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim().replace(/^[:\-*\s]+/, "").trim();
+    }
+  }
+  return undefined;
 }
 
 /**

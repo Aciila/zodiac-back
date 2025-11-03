@@ -197,7 +197,7 @@ export class AstrologyService {
       event: `${weeklyMood} Week`,
       description:
         today.description || "Focus on your trading strategy this week",
-      tradingAdvice: this.generateTradingAdvice(today.mood, today.color),
+      tradingAdvice: this.generateEventTradingAdvice(today.mood, today.color),
     });
 
     // 2. Lucky Time Event - з API
@@ -233,7 +233,7 @@ export class AstrologyService {
   /**
    * Генерує trading advice на основі mood та color з API
    */
-  private generateTradingAdvice(mood: string, color: string): string {
+  private generateEventTradingAdvice(mood: string, color: string): string {
     if (!mood || !color) {
       return "Maintain balanced approach - stay disciplined with your trading strategy";
     }

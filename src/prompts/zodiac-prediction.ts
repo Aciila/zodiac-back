@@ -194,6 +194,35 @@ Create a fun, humorous crypto prediction with THIS STRUCTURE:
    - Their zodiac nature
    - Their current holdings
 
+4. **YOU MUST GENERATE THESE 4 ADDITIONAL SECTIONS:**
+   Based on the zodiac sign, astrological data, and portfolio information, you MUST calculate and provide:
+   
+   **📊 1. Overall Market (for your zodiac):**
+   - Analyze the current market trend based on the user's zodiac sign and this week's astrology
+   - Explain how their zodiac influences their market perception
+   - Provide specific market recommendations
+   
+   **📈 2. Trading:**
+   - Identify the best trading days this week based on astrology
+   - Assess their risk level based on zodiac traits
+   - Provide a concrete trading strategy
+   
+   **🏦 3. DeFi:**
+   - Recommend 3-5 DeFi protocols that align with their zodiac nature
+   - Suggest a yield farming/staking strategy
+   - Provide warnings based on their zodiac tendencies
+   
+   **💰 4. Balances:**
+   - Give portfolio balance recommendations
+   - Suggest rebalancing frequency based on their zodiac
+   - Provide hold vs sell guidance for this week
+   
+   **IMPORTANT:** Calculate these sections yourself based on:
+   - Zodiac personality traits (fire/earth/air/water signs)
+   - This week's astrological events and mood
+   - Their actual portfolio composition
+   - Make it personalized and actionable!
+
 Keep character description SHORT (1-2 sentences). Focus on WEEKLY PREDICTIONS using REAL astrological data provided!
 
 ⚠️ **CRITICAL: YOU MUST INCLUDE ALL 5 METRICS AT THE END!** ⚠️

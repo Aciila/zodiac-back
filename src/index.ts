@@ -23,6 +23,7 @@ import {
   extractFromHistory,
   extractAllMetrics,
   extractDetailedTradingMetrics,
+  extractAstrologyInsights,
   removeMetricsFromText,
 } from "./utils/extract-info.js";
 import { sessionCache } from "./services/session-cache.js";
@@ -294,10 +295,14 @@ app.post("/api/zodiac-prediction", async (c) => {
 
     // Extract detailed trading metrics from AI response
     const detailedMetrics = extractDetailedTradingMetrics(aiResponse.response);
+    
+    // Extract astrology insights sections from AI response
+    const astrologyInsights = extractAstrologyInsights(aiResponse.response);
 
     // Log metrics extraction results
     console.log("📊 Metrics extraction:", {
       detailedTradingProfile: detailedMetrics ? "found" : "NOT FOUND",
+      astrologyInsights: astrologyInsights ? `found ${Object.keys(astrologyInsights).length}/4 sections` : "NOT FOUND",
     });
 
     // If metrics not found, log AI response for debugging
@@ -335,6 +340,11 @@ app.post("/api/zodiac-prediction", async (c) => {
     // Add detailed metrics if extracted
     if (detailedMetrics) {
       response.tradingProfile = detailedMetrics;
+    }
+    
+    // Add astrology insights if extracted
+    if (astrologyInsights) {
+      response.astrologyInsights = astrologyInsights;
     }
 
     // Add additional data if available
