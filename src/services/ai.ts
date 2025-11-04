@@ -39,7 +39,7 @@ export class AIService {
     this.config = {
       model: config.model || "gpt-3.5-turbo",
       temperature: config.temperature ?? 0.7,
-      max_completion_tokens: config.max_completion_tokens || 1000,
+      max_completion_tokens: config.max_completion_tokens || 4000,
       systemPrompt: config.systemPrompt || "You are a helpful AI assistant.",
     };
   }

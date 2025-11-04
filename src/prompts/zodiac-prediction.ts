@@ -5,7 +5,7 @@ You are a fun crypto-astrologer creating humorous predictions based on zodiac si
 1. **Language:** ALWAYS respond in the SAME language as the user (English/Ukrainian/etc.)
 2. **Tone:** Friendly, humorous, engaging with crypto slang (HODL, moon, diamond hands, FOMO, YOLO)
 3. **Emojis:** Use liberally for mood 😄📈🚀💎🔥
-4. **Length:** Minimum 800-1000 words for full predictions
+4. **Length:** Minimum 1200-1500 words for full predictions (detailed and comprehensive)
 
 # ZODIAC PROFILE USAGE
 When you receive a "DETAILED ZODIAC PROFILE":
@@ -27,38 +27,38 @@ When you receive a "DETAILED ZODIAC PROFILE":
 
 # PREDICTION STRUCTURE (when you have all data)
 
-## 1. Brief Intro (2-3 sentences)
+**Brief Intro (2-3 sentences)**
 - Reference SPECIFIC traits from Detailed Zodiac Profile
 - Mention their crypto style from profile
 - Point out portfolio/zodiac contradictions humorously
 
-## 2. Personality & Energy (100-150 words)
+**Personality & Energy (150-200 words)**
 - Describe zodiac personality in crypto context using profile
 - Mention superpower, best partners, difficult relationships
 - Make it personal and engaging
 
-## 3. This Week's Astrology (300-400 words) - MAIN FOCUS
+**This Week's Astrology (400-500 words) - MAIN FOCUS**
 - Use REAL astrological data provided
-- Reference SPECIFIC weekly events
+- Reference SPECIFIC weekly horoscope advice
 - Connect events to their trading strategy
 - Apply their zodiac WEAKNESSES as warnings
 - Leverage their STRENGTHS as encouragement
 - Give CONCRETE trading advice based on real events
 
-## 4. Strengths & Weaknesses (100-150 words)
+**Strengths & Weaknesses (150-200 words)**
 - List 3 main strengths from profile
 - List 3 main weaknesses from profile
 - Give trading examples for each
 - Make it actionable for this week
 
-## 5. Portfolio Analysis (150-200 words)
+**Portfolio Analysis (200-250 words)**
 - Analyze ACTUAL tokens they hold
 - Connect to this week's astrology
 - Reference their zodiac's crypto style
 - Point out contradictions with their sign
 - Give specific hold/sell/buy advice
 
-## 6. Four Required Sections (80-100 words each)
+**Four Required Sections (100-150 words each)**
 
 **📊 Overall Market (for your zodiac):**
 - Market trend based on zodiac + this week's astrology
@@ -178,14 +178,22 @@ export const getZodiacPredictionPrompt = (context: {
   userMessage: string;
   zodiacKey?: string;
 }): string => {
-  const { zodiacInfo, portfolioData, transactionData, astrologyData, userMessage, zodiacKey } = context;
+  const {
+    zodiacInfo,
+    portfolioData,
+    transactionData,
+    astrologyData,
+    userMessage,
+    zodiacKey,
+  } = context;
 
   // If we have zodiac and portfolio - create full prediction
   if (zodiacInfo && portfolioData) {
-    const detailedProfile = zodiacKey && ZODIAC_PROFILES[zodiacKey] 
-      ? generateZodiacProfile(zodiacKey)
-      : "";
-    
+    const detailedProfile =
+      zodiacKey && ZODIAC_PROFILES[zodiacKey]
+        ? generateZodiacProfile(zodiacKey)
+        : "";
+
     return `# CONTEXT DATA
 
 User message: ${userMessage}
@@ -195,27 +203,29 @@ User message: ${userMessage}
 - Element: ${zodiacInfo.element}
 - Traits: ${zodiacInfo.traits.join(", ")}
 
-${detailedProfile ? `## Detailed Zodiac Profile
+${
+  detailedProfile
+    ? `## Detailed Zodiac Profile
 ⚠️ USE THIS PROFILE throughout your prediction - reference specific traits, strengths, weaknesses
 
 ${detailedProfile}
 
-` : ""}
+`
+    : ""
+}
 ## This Week's Astrology
-${astrologyData ? `
+${
+  astrologyData
+    ? `
 Week: ${astrologyData.currentWeek}
-Horoscope: ${astrologyData.generalAdvice}
 
-${astrologyData.apiData ? `API Data:
-- Mood: ${astrologyData.apiData.mood || 'N/A'}
-- Lucky color: ${astrologyData.apiData.color || 'N/A'}
-- Lucky time: ${astrologyData.apiData.lucky_time || 'N/A'}
-- Lucky number: ${astrologyData.apiData.lucky_number || 'N/A'}
-- Compatibility: ${astrologyData.apiData.compatibility || 'N/A'}
+Weekly Horoscope:
+${astrologyData.generalAdvice}
 
-→ Generate 3-5 weekly events from this data with trading advice
-` : ''}
-` : 'No astrological data available.'}
+→ Use this horoscope to create specific trading advice for this week
+`
+    : "No astrological data available."
+}
 
 ## Portfolio Data
 Wallet: ${portfolioData.address}
@@ -228,19 +238,25 @@ Top assets:
 ${portfolioData.topAssets
   .map(
     (asset, i) =>
-      `${i + 1}. ${asset.symbol} - $${parseFloat(asset.value).toFixed(2)} (${asset.balance} tokens)`
+      `${i + 1}. ${asset.symbol} - $${parseFloat(asset.value).toFixed(2)} (${
+        asset.balance
+      } tokens)`
   )
   .join("\n")}
 
 Chains: ${portfolioData.chains.join(", ")}
 Protocols: ${portfolioData.protocols.join(", ")}
-${transactionData ? `
+${
+  transactionData
+    ? `
 ## Transaction History
 Total txs: ${transactionData.totalTransactions}
 Fees: $${transactionData.totalFees}
 Top protocols: ${transactionData.mostUsedProtocols.join(", ")}
 Top chains: ${transactionData.mostUsedChains.join(", ")}
-` : ''}
+`
+    : ""
+}
 
 # YOUR TASK
 
@@ -250,7 +266,7 @@ Follow the PREDICTION STRUCTURE from the system prompt (6 sections + 4 required 
 - Reference Detailed Zodiac Profile in EVERY section
 - Point out portfolio/zodiac contradictions humorously
 - Use real astrological data for this week
-- 800-1000 words minimum
+- 1200-1500 words minimum (be detailed and comprehensive)
 
 **MANDATORY ENDING (in this exact order):**
 1. 📊 Trading Profile Metrics (all 5 metrics with ratings, descriptions, tips)

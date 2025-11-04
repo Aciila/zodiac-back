@@ -332,7 +332,7 @@ app.post("/api/zodiac-prediction", async (c) => {
       apiKey: process.env.OPENAI_API_KEY || "",
       model: "gpt-4o-mini", // Better model for following complex instructions
       temperature: 0.8, // A bit more creativity for predictions
-      max_completion_tokens: 6000, // Increased to ensure AI has enough space for detailed predictions
+      max_completion_tokens: 8000, // Increased to ensure AI has enough space for detailed 1500-2000 word predictions
       systemPrompt: ZODIAC_PREDICTION_SYSTEM_PROMPT,
     });
 
