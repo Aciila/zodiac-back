@@ -25,7 +25,7 @@ export class DatabaseService {
 
   /**
    * Отримати або створити користувача
-   * Унікальність визначається комбінацією walletAddress + birthDate
+   * Один гаманець може мати кілька записів з різними birthDate
    */
   async getOrCreateUser(walletAddress: string, birthDate?: Date, zodiacSign?: string): Promise<IUser> {
     const normalizedAddress = walletAddress.toLowerCase();
@@ -34,8 +34,6 @@ export class DatabaseService {
     const query: any = { walletAddress: normalizedAddress };
     if (birthDate) {
       query.birthDate = birthDate;
-    } else {
-      query.birthDate = { $exists: false };
     }
     
     let user = await User.findOne(query);
@@ -46,7 +44,7 @@ export class DatabaseService {
         birthDate,
         zodiacSign,
       });
-      console.log(`✅ Created new user: ${normalizedAddress} ${birthDate ? `(birthDate: ${birthDate.toISOString().split('T')[0]})` : ''}`);
+      console.log(`✅ Created new user: ${normalizedAddress} ${birthDate ? `(birthDate: ${birthDate.toISOString().split('T')[0]})` : '(no birthDate)'}`);
     } else if (zodiacSign && user.zodiacSign !== zodiacSign) {
       // Оновлюємо zodiacSign якщо змінився
       user.zodiacSign = zodiacSign;
@@ -58,14 +56,14 @@ export class DatabaseService {
   }
 
   /**
-   * Отримати користувача по адресі гаманця та даті народження
+   * Отримати користувача по адресі гаманця
+   * Якщо birthDate передано, шукаємо точний збіг
+   * Якщо ні - повертаємо будь-якого користувача з цим гаманцем
    */
   async getUserByWallet(walletAddress: string, birthDate?: Date): Promise<IUser | null> {
     const query: any = { walletAddress: walletAddress.toLowerCase() };
     if (birthDate) {
       query.birthDate = birthDate;
-    } else {
-      query.birthDate = { $exists: false };
     }
     return User.findOne(query);
   }
@@ -95,29 +93,57 @@ export class DatabaseService {
 
   /**
    * Отримати предикшн для поточного тижня
+   * Логіка: шукаємо по walletAddress + weekStart
+   * Якщо передано birthDate, перевіряємо що він співпадає або не існує (для оновлення)
    */
   async getPredictionForCurrentWeek(walletAddress: string, birthDate?: Date): Promise<IPrediction | null> {
     const weekStart = this.getCurrentWeekStart();
     const normalizedAddress = walletAddress.toLowerCase();
     
-    const query: any = {
-      walletAddress: normalizedAddress,
-      weekStart: weekStart,
-    };
-    
-    // Додаємо birthDate до запиту якщо він є
+    // Спочатку шукаємо точний збіг: walletAddress + birthDate + weekStart
     if (birthDate) {
-      query.birthDate = birthDate;
+      const exactMatch = await Prediction.findOne({
+        walletAddress: normalizedAddress,
+        weekStart: weekStart,
+        birthDate: birthDate,
+      });
+      
+      if (exactMatch) {
+        console.log(`✅ Found exact match: wallet + birthDate (${birthDate.toISOString().split('T')[0]})`);
+        return exactMatch;
+      }
+      
+      // Якщо точного збігу немає, шукаємо предикшн без birthDate (можливо треба оновити)
+      const predictionWithoutBirthDate = await Prediction.findOne({
+        walletAddress: normalizedAddress,
+        weekStart: weekStart,
+        birthDate: { $exists: false },
+      });
+      
+      if (predictionWithoutBirthDate) {
+        console.log(`⚠️ Found prediction without birthDate, will need to regenerate with birthDate`);
+        // Не повертаємо його, бо тепер у нас є birthDate - треба згенерувати новий
+        return null;
+      }
     } else {
-      // Якщо birthDate не передано, шукаємо предикшн без birthDate
-      query.birthDate = { $exists: false };
+      // Якщо birthDate не передано, шукаємо будь-який предикшн для цього гаманця
+      const anyPrediction = await Prediction.findOne({
+        walletAddress: normalizedAddress,
+        weekStart: weekStart,
+      });
+      
+      if (anyPrediction) {
+        console.log(`✅ Found prediction for wallet (birthDate: ${anyPrediction.birthDate ? anyPrediction.birthDate.toISOString().split('T')[0] : 'none'})`);
+        return anyPrediction;
+      }
     }
     
-    return Prediction.findOne(query);
+    return null;
   }
 
   /**
    * Зберегти новий предикшн
+   * Видаляє старий предикшн з точним збігом walletAddress + birthDate + weekStart
    */
   async savePrediction(
     walletAddress: string,
@@ -130,7 +156,7 @@ export class DatabaseService {
     const weekEnd = this.getWeekEnd(weekStart);
     const normalizedAddress = walletAddress.toLowerCase();
 
-    // Видаляємо старий предикшн для цього тижня (якщо є)
+    // Видаляємо старий предикшн для цього тижня з точним збігом
     const deleteQuery: any = {
       walletAddress: normalizedAddress,
       weekStart: weekStart,
@@ -138,8 +164,6 @@ export class DatabaseService {
     
     if (birthDate) {
       deleteQuery.birthDate = birthDate;
-    } else {
-      deleteQuery.birthDate = { $exists: false };
     }
     
     await Prediction.deleteOne(deleteQuery);
@@ -155,7 +179,7 @@ export class DatabaseService {
       portfolioSnapshot,
     });
 
-    console.log(`✅ Saved prediction for ${normalizedAddress} ${birthDate ? `(birthDate: ${birthDate.toISOString().split('T')[0]})` : ''} (week: ${weekStart.toISOString()})`);
+    console.log(`✅ Saved prediction for ${normalizedAddress} ${birthDate ? `(birthDate: ${birthDate.toISOString().split('T')[0]})` : '(no birthDate)'} (week: ${weekStart.toISOString()})`);
     return newPrediction;
   }
 

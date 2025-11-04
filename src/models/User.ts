@@ -31,7 +31,8 @@ const UserSchema: Schema = new Schema(
   }
 );
 
-// Compound index для унікальності: один гаманець може мати кілька користувачів з різними датами народження
-UserSchema.index({ walletAddress: 1, birthDate: 1 }, { unique: true, sparse: true });
+// Compound index для швидкого пошуку, але БЕЗ unique constraint
+// Дозволяємо один гаманець мати кілька записів з різними датами народження
+UserSchema.index({ walletAddress: 1, birthDate: 1 });
 
 export const User = mongoose.model<IUser>('User', UserSchema);
