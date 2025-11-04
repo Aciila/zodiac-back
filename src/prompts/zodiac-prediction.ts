@@ -126,12 +126,14 @@ export const getZodiacPredictionPrompt = (context: {
   };
   astrologyData?: {
     currentWeek: string;
-    weeklyEvents: Array<{
-      event: string;
-      description: string;
-      tradingAdvice: string;
-    }>;
     generalAdvice: string;
+    apiData?: {
+      mood?: string;
+      color?: string;
+      lucky_time?: string;
+      lucky_number?: string;
+      compatibility?: string;
+    };
   };
   userMessage: string;
   zodiacKey?: string;
@@ -164,14 +166,26 @@ ${detailedProfile}
 ${astrologyData ? `
 Current week: ${astrologyData.currentWeek}
 
-Weekly astrological events:
-${astrologyData.weeklyEvents.map((event: any, i: number) => 
-  `${i + 1}. ${event.event}
-   - ${event.description}
-   - Trading advice: ${event.tradingAdvice}`
-).join("\n\n")}
+General weekly horoscope: ${astrologyData.generalAdvice}
 
-General weekly advice: ${astrologyData.generalAdvice}
+${astrologyData.apiData ? `
+Additional astrological data from API:
+- Mood: ${astrologyData.apiData.mood || 'N/A'}
+- Lucky color: ${astrologyData.apiData.color || 'N/A'}
+- Lucky time: ${astrologyData.apiData.lucky_time || 'N/A'}
+- Lucky number: ${astrologyData.apiData.lucky_number || 'N/A'}
+- Compatibility: ${astrologyData.apiData.compatibility || 'N/A'}
+` : ''}
+
+⚠️ **YOUR TASK**: Based on the horoscope and API data above, you MUST generate:
+1. **Weekly Trading Advice** - specific trading recommendations for this week based on mood, lucky time, etc.
+2. **3-5 Weekly Events** - astrological events that will impact trading this week, each with:
+   - Event name (e.g., "Peak Trading Hours", "Cosmic Compatibility Alert", "Energy Shift")
+   - Description (what's happening astrologically, use API data like lucky_time, compatibility, mood)
+   - Trading advice (how to use this event for trading)
+
+Use the API data (mood, color, lucky_time, compatibility) to create specific, actionable events.
+Format these events clearly in your response so they can be extracted and displayed separately.
 ` : 'No specific astrological data available for this week.'}
 
 === PORTFOLIO ===

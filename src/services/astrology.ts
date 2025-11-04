@@ -2,12 +2,14 @@
 
 export interface AstrologyData {
   currentWeek: string;
-  weeklyEvents: Array<{
-    event: string;
-    description: string;
-    tradingAdvice: string;
-  }>;
   generalAdvice: string;
+  apiData?: {
+    mood?: string;
+    color?: string;
+    lucky_time?: string;
+    lucky_number?: string;
+    compatibility?: string;
+  };
 }
 
 export interface AztroHoroscope {
@@ -163,122 +165,21 @@ export class AstrologyService {
 
       const currentWeek = `${formatDate(weekStart)} - ${formatDate(weekEnd)}`;
 
-      // Генеруємо події на основі API даних
-      const weeklyEvents = this.generateWeeklyEventsFromAPI(
-        today,
-        tomorrow,
-        yesterday
-      );
-
       return {
         currentWeek,
-        weeklyEvents,
         generalAdvice: today.description,
+        apiData: {
+          mood: today.mood,
+          color: today.color,
+          lucky_time: today.lucky_time,
+          lucky_number: today.lucky_number,
+          compatibility: today.compatibility,
+        },
       };
     } catch (error) {
       console.error("Error generating weekly astrology data:", error);
       throw error;
     }
-  }
-
-  /**
-   * Генерує тижневі події на основі API даних
-   */
-  private generateWeeklyEventsFromAPI(
-    today: AztroHoroscope,
-    tomorrow: AztroHoroscope | null,
-    yesterday: AztroHoroscope | null
-  ): Array<{ event: string; description: string; tradingAdvice: string }> {
-    const events = [];
-
-    // 1. Основна подія тижня - з сьогоднішнього гороскопу
-    const weeklyMood = today.mood ? `${today.mood} Energy` : "Weekly Energy";
-    events.push({
-      event: `${weeklyMood} Week`,
-      description:
-        today.description || "Focus on your trading strategy this week",
-      tradingAdvice: this.generateEventTradingAdvice(today.mood, today.color),
-    });
-
-    // 2. Lucky Time Event - з API
-    if (today.lucky_time) {
-      events.push({
-        event: "Peak Trading Hours",
-        description: `Your optimal trading window: ${today.lucky_time}`,
-        tradingAdvice: `Schedule important trades and portfolio decisions during ${today.lucky_time} for best results`,
-      });
-    }
-
-    // 3. Compatibility Event - з API
-    if (today.compatibility) {
-      events.push({
-        event: "Cosmic Compatibility",
-        description: `This week you're in harmony with ${today.compatibility} energy`,
-        tradingAdvice: `Consider collaborating or following insights from ${today.compatibility} traders in your network`,
-      });
-    }
-
-    // 4. Завтрашній тренд - якщо є дані
-    if (tomorrow && tomorrow.mood) {
-      events.push({
-        event: "Tomorrow's Trend",
-        description: `Tomorrow's mood: ${tomorrow.mood}`,
-        tradingAdvice: this.generateTomorrowAdvice(tomorrow.mood),
-      });
-    }
-
-    return events;
-  }
-
-  /**
-   * Генерує trading advice на основі mood та color з API
-   */
-  private generateEventTradingAdvice(mood: string, color: string): string {
-    if (!mood || !color) {
-      return "Maintain balanced approach - stay disciplined with your trading strategy";
-    }
-
-    const moodLower = mood.toLowerCase();
-
-    // Positive moods
-    if (
-      moodLower.includes("happy") ||
-      moodLower.includes("joyful") ||
-      moodLower.includes("relaxed")
-    ) {
-      return `Your ${mood.toLowerCase()} energy supports confident decisions - good time for calculated risks in established cryptos. Lucky color: ${color}`;
-    }
-
-    // Cautious moods
-    if (
-      moodLower.includes("stressed") ||
-      moodLower.includes("anxious") ||
-      moodLower.includes("tense")
-    ) {
-      return "High stress detected - stick to stablecoins, avoid impulsive trades, focus on capital preservation";
-    }
-
-    // Neutral/balanced
-    return `${mood} energy this week - maintain your current strategy and stay disciplined. Focus on ${color.toLowerCase()} chip projects`;
-  }
-
-  /**
-   * Генерує пораду на завтра
-   */
-  private generateTomorrowAdvice(mood: string): string {
-    if (!mood) {
-      return "Tomorrow brings new opportunities - stay prepared and flexible";
-    }
-
-    const moodLower = mood.toLowerCase();
-
-    if (moodLower.includes("happy") || moodLower.includes("joyful")) {
-      return "Prepare for positive momentum tomorrow - research opportunities today";
-    }
-    if (moodLower.includes("stressed") || moodLower.includes("anxious")) {
-      return "Tomorrow may be volatile - set stop-losses and secure profits today";
-    }
-    return "Tomorrow brings balanced energy - stay flexible and ready to adapt";
   }
 
 }

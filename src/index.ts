@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { AIService } from "./services/ai.js";
 import { OctavService } from "./services/octav.js";
 import { AstrologyService } from "./services/astrology.js";
+import { DatabaseService } from "./services/database.js";
 import {
   getZodiacSign,
   isValidBirthDate,
@@ -26,7 +27,6 @@ import {
   extractAstrologyInsights,
   removeMetricsFromText,
 } from "./utils/extract-info.js";
-import { sessionCache } from "./services/session-cache.js";
 import { detectLanguage } from "./utils/language-detector.js";
 
 dotenv.config();
@@ -49,6 +49,16 @@ const octavService = new OctavService();
 
 // Initialize Astrology service
 const astrologyService = new AstrologyService();
+
+// Initialize Database service
+const dbService = new DatabaseService();
+
+// Connect to MongoDB
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/zodiac";
+dbService.connect(MONGO_URI).catch((error) => {
+  console.error("Failed to connect to MongoDB:", error);
+  process.exit(1);
+});
 
 // Enable CORS
 app.use("/*", cors());
@@ -138,66 +148,45 @@ app.post("/api/zodiac-prediction", async (c) => {
     const body = await c.req.json();
     const {
       message = "",
-      sessionId = "default",
       walletAddress: paramWalletAddress,
+      birthDate: paramBirthDate,
+      zodiacSign: paramZodiacSign,
     } = body;
 
     // Detect language from message
     const language = detectLanguage(message);
     console.log(`🌐 Detected language: ${language}`);
 
-    // Get or create session
-    let session = sessionCache.get(sessionId);
-    if (!session) {
-      console.log(`🆕 Creating new session: ${sessionId}`);
-      sessionCache.set(sessionId, {
-        conversationHistory: [],
-        language,
-      });
-      session = sessionCache.get(sessionId);
-    }
-
-    // Update language if changed
-    if (session && language !== session.language) {
-      sessionCache.set(sessionId, { ...session, language });
-    }
-
-    // Add user message to history
-    sessionCache.addMessage(sessionId, "user", message);
-
     // Extract information from current message
     const currentInfo = extractAllInfo(message);
 
-    // Extract information from session history
-    const historyInfo = extractFromHistory(session?.conversationHistory || []);
+    // Priority: 1) параметри 2) з повідомлення 3) з БД
+    let walletAddress: string | undefined = paramWalletAddress || currentInfo.walletAddress;
+    let birthDate: string | undefined = paramBirthDate || currentInfo.birthDate;
+    let zodiacSignKey: string | undefined = paramZodiacSign || currentInfo.zodiacSign;
 
-    // Merge information (priority: current message, then session, then history, then parameter)
-    const zodiacSignKey =
-      currentInfo.zodiacSign || session?.zodiacSign || historyInfo.zodiacSign;
-    const birthDate =
-      currentInfo.birthDate || session?.birthDate || historyInfo.birthDate;
-    // Address priority: 1) from chat 2) parameter 3) from session 4) from history
-    const walletAddress =
-      currentInfo.walletAddress ||
-      paramWalletAddress ||
-      session?.walletAddress ||
-      historyInfo.walletAddress;
+    // Якщо є адреса гаманця, спробуємо отримати дані з БД
+    let user = null;
+    if (walletAddress) {
+      user = await dbService.getUserByWallet(walletAddress);
+      if (user) {
+        console.log(`✅ Found user in DB: ${walletAddress}`);
+        // Якщо в БД є дані, використовуємо їх як fallback
+        if (!birthDate && user.birthDate) {
+          birthDate = user.birthDate.toISOString().split('T')[0];
+        }
+        if (!zodiacSignKey && user.zodiacSign) {
+          zodiacSignKey = user.zodiacSign;
+        }
+      }
+    }
 
-    console.log("📊 Extracted info:", {
+    console.log("📊 Final extracted info:", {
       zodiacSignKey,
       birthDate,
       walletAddress,
       language,
     });
-
-    // Update session with new info
-    if (zodiacSignKey || birthDate || walletAddress) {
-      sessionCache.set(sessionId, {
-        zodiacSign: zodiacSignKey,
-        birthDate: birthDate,
-        walletAddress: walletAddress,
-      });
-    }
 
     // Collect all available information
     let zodiacKey: string | null = null;
@@ -218,7 +207,7 @@ app.post("/api/zodiac-prediction", async (c) => {
 
     // Get wallet data if address exists
     let walletError: string | null = null;
-    if (walletAddress) {
+    if (walletAddress && walletAddress !== null) {
       try {
         console.log("🔍 Fetching wallet data for:", walletAddress);
         walletData = await octavService.getWalletAnalysis(walletAddress);
@@ -238,14 +227,41 @@ app.post("/api/zodiac-prediction", async (c) => {
       }
     }
 
+    // Перевірка чи є збережений предикшн для поточного тижня
+    let cachedPrediction = null;
+    if (walletAddress && zodiacKey) {
+      cachedPrediction = await dbService.getPredictionForCurrentWeek(walletAddress);
+      if (cachedPrediction) {
+        console.log(`✅ Found cached prediction for ${walletAddress}`);
+        
+        // Повертаємо кешований предикшн
+        const detailedMetrics = extractDetailedTradingMetrics(cachedPrediction.prediction);
+        const astrologyInsights = extractAstrologyInsights(cachedPrediction.prediction);
+        const cleanMessage = removeMetricsFromText(cachedPrediction.prediction);
+        
+        return c.json({
+          success: true,
+          message: cleanMessage,
+          cached: true,
+          language: language,
+          extractedInfo: {
+            zodiacSign: zodiacKey,
+            birthDate: birthDate,
+            walletAddress: walletAddress,
+          },
+          tradingProfile: detailedMetrics || undefined,
+          astrologyInsights: astrologyInsights || undefined,
+          zodiac: zodiacInfo || undefined,
+        });
+      }
+    }
+
     // Get astrology data if zodiac sign is known
     let astrologyData = null;
-    if (zodiacKey) {
+    if (zodiacKey && zodiacKey !== null) {
       try {
         console.log("🔮 Fetching astrology data for:", zodiacKey);
-        astrologyData = await astrologyService.getWeeklyAstrologyData(
-          zodiacKey
-        );
+        astrologyData = await astrologyService.getWeeklyAstrologyData(zodiacKey);
         console.log(astrologyData);
         console.log("✅ Astrology data fetched successfully");
       } catch (error: any) {
@@ -288,11 +304,33 @@ app.post("/api/zodiac-prediction", async (c) => {
 
     const aiResponse = await tempAiService.chat({
       prompt,
-      conversationHistory: session?.conversationHistory || [],
+      conversationHistory: [], // Без історії, кожен запит незалежний
     });
 
-    // Save AI response to session
-    sessionCache.addMessage(sessionId, "assistant", aiResponse.response);
+    // Зберегти користувача та предикшн в БД
+    if (walletAddress && zodiacKey) {
+      // Зберегти/оновити користувача
+      await dbService.getOrCreateUser(
+        walletAddress,
+        birthDate ? new Date(birthDate) : undefined,
+        zodiacKey
+      );
+
+      // Зберегти предикшн
+      await dbService.savePrediction(
+        walletAddress,
+        aiResponse.response,
+        zodiacKey,
+        walletData ? {
+          networth: walletData.portfolio.networth,
+          totalAssets: walletData.portfolio.totalAssets,
+          topAssets: walletData.portfolio.topAssets.slice(0, 5).map(a => ({
+            symbol: a.symbol,
+            value: a.value,
+          })),
+        } : undefined
+      );
+    }
 
     // Extract detailed trading metrics from AI response
     const detailedMetrics = extractDetailedTradingMetrics(aiResponse.response);
@@ -326,7 +364,7 @@ app.post("/api/zodiac-prediction", async (c) => {
     const response: any = {
       success: true,
       message: cleanMessage,
-      sessionId: sessionId,
+      cached: false,
       language: language,
       usage: aiResponse.usage,
       // Add extracted information for context preservation
@@ -389,19 +427,23 @@ app.get("/api/zodiac-signs", (c) => {
   });
 });
 
-// Endpoint for getting cache statistics (for debug)
-app.get("/api/sessions/stats", (c) => {
-  return c.json(sessionCache.getStats());
-});
-
-// Endpoint for clearing session
-app.delete("/api/sessions/:sessionId", (c) => {
-  const sessionId = c.req.param("sessionId");
-  sessionCache.delete(sessionId);
-  return c.json({
-    success: true,
-    message: `Session ${sessionId} deleted`,
-  });
+// Endpoint for cleaning up old predictions
+app.post("/api/cleanup", async (c) => {
+  try {
+    await dbService.cleanupOldPredictions();
+    return c.json({
+      success: true,
+      message: "Old predictions cleaned up successfully",
+    });
+  } catch (error: any) {
+    return c.json(
+      {
+        error: "Failed to cleanup predictions",
+        details: error.message,
+      },
+      500
+    );
+  }
 });
 
 const port = parseInt(process.env.PORT || "3000");
