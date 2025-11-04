@@ -26,8 +26,10 @@ import {
   extractDetailedTradingMetrics,
   extractAstrologyInsights,
   removeMetricsFromText,
+  extractPortfolioBreakdown,
 } from "./utils/extract-info.js";
 import { detectLanguage } from "./utils/language-detector.js";
+import { calculateTimeUntilNextHoroscope } from "./utils/time-calculator.js";
 
 dotenv.config();
 
@@ -237,13 +239,18 @@ app.post("/api/zodiac-prediction", async (c) => {
         // Повертаємо кешований предикшн
         const detailedMetrics = extractDetailedTradingMetrics(cachedPrediction.prediction);
         const astrologyInsights = extractAstrologyInsights(cachedPrediction.prediction);
+        const portfolioBreakdown = extractPortfolioBreakdown(cachedPrediction.prediction);
         const cleanMessage = removeMetricsFromText(cachedPrediction.prediction);
+        
+        // Розраховуємо час до нового гороскопу
+        const timeUntilNextHoroscope = calculateTimeUntilNextHoroscope(cachedPrediction.weekEnd);
         
         return c.json({
           success: true,
           message: cleanMessage,
           cached: true,
           language: language,
+          timeUntilNextHoroscope,
           extractedInfo: {
             zodiacSign: zodiacKey,
             birthDate: birthDate,
@@ -251,6 +258,7 @@ app.post("/api/zodiac-prediction", async (c) => {
           },
           tradingProfile: detailedMetrics || undefined,
           astrologyInsights: astrologyInsights || undefined,
+          portfolioBreakdown: portfolioBreakdown || undefined,
           zodiac: zodiacInfo || undefined,
         });
       }
@@ -308,6 +316,7 @@ app.post("/api/zodiac-prediction", async (c) => {
     });
 
     // Зберегти користувача та предикшн в БД
+    let savedPrediction = null;
     if (walletAddress && zodiacKey) {
       // Зберегти/оновити користувача
       await dbService.getOrCreateUser(
@@ -317,7 +326,7 @@ app.post("/api/zodiac-prediction", async (c) => {
       );
 
       // Зберегти предикшн
-      await dbService.savePrediction(
+      savedPrediction = await dbService.savePrediction(
         walletAddress,
         aiResponse.response,
         zodiacKey,
@@ -337,11 +346,15 @@ app.post("/api/zodiac-prediction", async (c) => {
     
     // Extract astrology insights sections from AI response
     const astrologyInsights = extractAstrologyInsights(aiResponse.response);
+    
+    // Extract portfolio breakdown from AI response
+    const portfolioBreakdown = extractPortfolioBreakdown(aiResponse.response);
 
     // Log metrics extraction results
     console.log("📊 Metrics extraction:", {
       detailedTradingProfile: detailedMetrics ? "found" : "NOT FOUND",
       astrologyInsights: astrologyInsights ? `found ${Object.keys(astrologyInsights).length}/4 sections` : "NOT FOUND",
+      portfolioBreakdown: portfolioBreakdown ? "found" : "NOT FOUND",
     });
 
     // If metrics not found, log AI response for debugging
@@ -360,6 +373,11 @@ app.post("/api/zodiac-prediction", async (c) => {
     // Even if parsing failed, we still want to remove the metrics text
     const cleanMessage = removeMetricsFromText(aiResponse.response);
 
+    // Calculate time until next horoscope if prediction was saved
+    const timeUntilNextHoroscope = savedPrediction 
+      ? calculateTimeUntilNextHoroscope(savedPrediction.weekEnd)
+      : undefined;
+
     // Build response
     const response: any = {
       success: true,
@@ -367,6 +385,7 @@ app.post("/api/zodiac-prediction", async (c) => {
       cached: false,
       language: language,
       usage: aiResponse.usage,
+      timeUntilNextHoroscope,
       // Add extracted information for context preservation
       extractedInfo: {
         zodiacSign: zodiacKey,
@@ -383,6 +402,11 @@ app.post("/api/zodiac-prediction", async (c) => {
     // Add astrology insights if extracted
     if (astrologyInsights) {
       response.astrologyInsights = astrologyInsights;
+    }
+    
+    // Add portfolio breakdown if extracted
+    if (portfolioBreakdown) {
+      response.portfolioBreakdown = portfolioBreakdown;
     }
 
     // Add additional data if available

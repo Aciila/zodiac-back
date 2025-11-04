@@ -24,12 +24,12 @@ export interface AztroHoroscope {
 }
 
 export class AstrologyService {
-  private readonly HOROSCOPE_API = "https://horoscope-app-api.vercel.app/api/v1/get-horoscope";
+  private readonly HOROSCOPE_API =
+    "https://horoscope-app-api.vercel.app/api/v1/get-horoscope";
 
   constructor() {
     // No initialization needed for direct HTTP calls
   }
-
 
   /**
    * Виконує запит до альтернативного Horoscope API
@@ -41,15 +41,23 @@ export class AstrologyService {
     try {
       const dayMap = { today: "daily", tomorrow: "daily", yesterday: "daily" };
       const response = await fetch(
-        `${this.HOROSCOPE_API}/${dayMap[day]}?sign=${sign.toLowerCase()}&day=${day === "today" ? "TODAY" : day === "tomorrow" ? "TOMORROW" : "YESTERDAY"}`
+        `${this.HOROSCOPE_API}/${dayMap[day]}?sign=${sign.toLowerCase()}&day=${
+          day === "today"
+            ? "TODAY"
+            : day === "tomorrow"
+            ? "TOMORROW"
+            : "YESTERDAY"
+        }`
       );
 
       if (!response.ok) {
-        console.error(`Horoscope API error for ${sign} ${day}: ${response.status}`);
+        console.error(
+          `Horoscope API error for ${sign} ${day}: ${response.status}`
+        );
         return null;
       }
 
-      const result = await response.json() as any;
+      const result = (await response.json()) as any;
       if (result && result.data) {
         // Конвертуємо формат в AztroHoroscope
         return {
@@ -66,11 +74,13 @@ export class AstrologyService {
 
       return null;
     } catch (error) {
-      console.error(`Failed to fetch ${day} horoscope from Horoscope API:`, error);
+      console.error(
+        `Failed to fetch ${day} horoscope from Horoscope API:`,
+        error
+      );
       return null;
     }
   }
-
 
   /**
    * Отримує гороскоп з Horoscope API
@@ -181,5 +191,4 @@ export class AstrologyService {
       throw error;
     }
   }
-
 }

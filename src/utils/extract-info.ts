@@ -55,6 +55,13 @@ export interface AstrologyInsights {
   balances?: BalancesSection;
 }
 
+export interface PortfolioBreakdown {
+  blueChips: number;
+  defiTokens: number;
+  stablecoins: number;
+  memecoins: number;
+}
+
 // Legacy types for backward compatibility
 export interface TradingMetrics {
   riskAppetite: number;
@@ -548,4 +555,62 @@ export function removeMetricsFromText(text: string): string {
   cleanedText = cleanedText.replace(/\n+---+\s*$/g, "").trim();
 
   return cleanedText;
+}
+
+/**
+ * Extracts portfolio breakdown from AI response
+ * Format: **📊 Portfolio breakdown:**
+ *   - **Blue chips:** 85%
+ *   - **DeFi tokens:** 10%
+ *   - **Stablecoins:** 3%
+ *   - **Memecoins:** 2%
+ */
+export function extractPortfolioBreakdown(text: string): PortfolioBreakdown | null {
+  const breakdown: Partial<PortfolioBreakdown> = {};
+
+  // Try to find the Portfolio breakdown section
+  const sectionMatch = text.match(
+    /\*\*📊\s*Portfolio breakdown:\*\*[\s\S]*?(?=\n\n|\n\*\*|$)/i
+  );
+
+  if (!sectionMatch) {
+    console.warn("⚠️ Portfolio breakdown section not found");
+    return null;
+  }
+
+  const section = sectionMatch[0];
+
+  // Extract each category
+  const categories = [
+    { key: 'blueChips', pattern: /Blue chips:\s*(\d+)%/i },
+    { key: 'defiTokens', pattern: /DeFi tokens:\s*(\d+)%/i },
+    { key: 'stablecoins', pattern: /Stablecoins:\s*(\d+)%/i },
+    { key: 'memecoins', pattern: /Memecoins:\s*(\d+)%/i },
+  ] as const;
+
+  for (const { key, pattern } of categories) {
+    const match = section.match(pattern);
+    if (match) {
+      const value = parseInt(match[1], 10);
+      if (value >= 0 && value <= 100) {
+        breakdown[key] = value;
+        console.log(`✅ Extracted ${key}: ${value}%`);
+      }
+    } else {
+      console.warn(`⚠️ Could not extract ${key} from portfolio breakdown`);
+    }
+  }
+
+  // Return only if we found all 4 categories
+  if (Object.keys(breakdown).length === 4) {
+    return breakdown as PortfolioBreakdown;
+  }
+
+  console.warn(
+    "⚠️ Portfolio breakdown partially found:",
+    Object.keys(breakdown).length,
+    "/4",
+    Object.keys(breakdown)
+  );
+  return null;
 }

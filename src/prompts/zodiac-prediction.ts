@@ -332,7 +332,39 @@ Format EXACTLY like this at the end of your response:
 - NO dash (-) before "Description:" and "Tip:"
 - Use two spaces at the end of each line for proper formatting
 - Keep this exact structure for all 5 metrics
-- DO NOT SKIP ANY METRICS! All 5 trading profile metrics are required!`;
+- DO NOT SKIP ANY METRICS! All 5 trading profile metrics are required!
+
+⚠️ **CRITICAL: YOU MUST ALSO INCLUDE PORTFOLIO BREAKDOWN!** ⚠️
+
+After the Trading Profile Metrics, you MUST calculate and provide a Portfolio Breakdown section.
+
+**Token Categories:**
+- **Blue chips:** Major cryptocurrencies like BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC, etc. These are established, high market cap tokens.
+- **DeFi tokens:** Tokens from decentralized finance protocols like UNI, AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX, etc.
+- **Stablecoins:** USD-pegged tokens like USDT, USDC, DAI, BUSD, FRAX, etc.
+- **Memecoins:** Community-driven meme tokens like DOGE, SHIB, PEPE, FLOKI, BONK, WIF, etc.
+
+**How to calculate:**
+1. Look at ALL tokens in the user's portfolio (from the "Top portfolio assets" section)
+2. Categorize each token based on the definitions above
+3. Calculate the percentage of portfolio value in each category
+4. Round to whole numbers (percentages should add up to approximately 100%)
+5. If a token doesn't fit any category, you can distribute it proportionally or add it to the closest category
+
+Format EXACTLY like this after the Trading Profile Metrics:
+
+**📊 Portfolio breakdown:**
+
+- **Blue chips:** 85%
+- **DeFi tokens:** 10%
+- **Stablecoins:** 3%
+- **Memecoins:** 2%
+
+⚠️ IMPORTANT:
+- This section is MANDATORY even if portfolio is empty (use 0% for all categories)
+- Percentages should be whole numbers
+- Make sure to analyze ALL tokens from the portfolio, not just top 5
+- Be accurate in categorization based on token symbols`;
   }
 
   // If we have zodiac sign but no portfolio
