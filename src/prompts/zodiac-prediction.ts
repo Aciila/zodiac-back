@@ -327,9 +327,15 @@ Create a fun, humorous crypto prediction with THIS STRUCTURE:
 - Make it feel PERSONALIZED - like you really understand their zodiac sign
 - Be humorous and engaging, not generic!
 
-⚠️ **CRITICAL: YOU MUST INCLUDE ALL 5 METRICS AT THE END!** ⚠️
+═══════════════════════════════════════════════════════════════
+🚨 MANDATORY OUTPUT FORMAT - YOUR RESPONSE MUST END WITH THESE TWO SECTIONS 🚨
+═══════════════════════════════════════════════════════════════
 
-Format EXACTLY like this at the end of your response:
+After your main prediction text, you MUST include these TWO sections in this EXACT order:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: TRADING PROFILE METRICS (MANDATORY - ALL 5 REQUIRED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **📊 Trading Profile Metrics:**
 
@@ -353,49 +359,54 @@ Format EXACTLY like this at the end of your response:
   Description: You navigate multiple DeFi protocols with confidence.  
   Tip: Your DeFi expertise is impressive - consider sharing knowledge with the community.
 
-⚠️ IMPORTANT FORMAT RULES:
+⚠️ FORMAT RULES:
 - NO dash (-) before "Description:" and "Tip:"
-- Use two spaces at the end of each line for proper formatting
-- Keep this exact structure for all 5 metrics
-- DO NOT SKIP ANY METRICS! All 5 trading profile metrics are required!
+- Two spaces at end of each line
+- ALL 5 metrics are REQUIRED - DO NOT SKIP ANY!
 
-⚠️ **CRITICAL: YOU MUST ALSO INCLUDE PORTFOLIO BREAKDOWN!** ⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: PORTFOLIO BREAKDOWN (MANDATORY - MUST BE LAST)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-After the Trading Profile Metrics, you MUST calculate and provide a Portfolio Breakdown section.
+After Trading Profile Metrics, you MUST add Portfolio Breakdown.
 
-**Token Categories:**
-- **Blue chips:** Major cryptocurrencies like BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC, etc. These are established, high market cap tokens.
-- **DeFi tokens:** Tokens from decentralized finance protocols like UNI, AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX, etc.
-- **Stablecoins:** USD-pegged tokens like USDT, USDC, DAI, BUSD, FRAX, etc.
-- **Memecoins:** Community-driven meme tokens like DOGE, SHIB, PEPE, FLOKI, BONK, WIF, etc.
+**Token Categories (for calculation):**
+- **Blue chips:** BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC
+- **DeFi tokens:** UNI, AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX
+- **Stablecoins:** USDT, USDC, DAI, BUSD, FRAX
+- **Memecoins:** DOGE, SHIB, PEPE, FLOKI, BONK, WIF
 
-**How to calculate:**
-1. Look at ALL tokens in the user's portfolio (from the "Top portfolio assets" section)
-2. Categorize each token based on the definitions above
-3. Calculate the percentage of portfolio value in each category
-4. Round to whole numbers (percentages should add up to approximately 100%)
-5. If a token doesn't fit any category, you can distribute it proportionally or add it to the closest category
+**Calculation steps:**
+1. Look at "Top portfolio assets" section above
+2. Categorize EACH token (ETH = Blue chip, USDT = Stablecoin, etc.)
+3. Calculate % of total value in each category
+4. Round to whole numbers
 
-Format EXACTLY like this after the Trading Profile Metrics:
+**Format EXACTLY like this:**
 
 **📊 Portfolio breakdown:**
 
-- **Blue chips:** 85%
-- **DeFi tokens:** 10%
-- **Stablecoins:** 3%
-- **Memecoins:** 2%
+- **Blue chips:** 50%
+- **DeFi tokens:** 0%
+- **Stablecoins:** 50%
+- **Memecoins:** 0%
 
-⚠️ IMPORTANT:
-- This section is MANDATORY even if portfolio is empty (use 0% for all categories)
-- Percentages should be whole numbers
-- Make sure to analyze ALL tokens from the portfolio, not just top 5
-- Be accurate in categorization based on token symbols
+⚠️ CRITICAL RULES:
+- This section is MANDATORY - even if portfolio is empty (use 0% for all)
+- Must be the LAST thing in your response
+- Percentages must be whole numbers
+- Must add up to ~100%
 
-🚨 FINAL REMINDER: Your response MUST end with BOTH sections:
-1. **📊 Trading Profile Metrics:** (5 metrics with value/description/tip)
-2. **📊 Portfolio breakdown:** (4 categories with percentages)
+═══════════════════════════════════════════════════════════════
+🚨 CHECKLIST BEFORE SENDING YOUR RESPONSE 🚨
+═══════════════════════════════════════════════════════════════
 
-DO NOT FORGET THE PORTFOLIO BREAKDOWN! It must be the LAST section of your response!`;
+✅ Did you include **📊 Trading Profile Metrics:** with ALL 5 metrics?
+✅ Did you include **📊 Portfolio breakdown:** with ALL 4 categories?
+✅ Is Portfolio breakdown the LAST section of your response?
+✅ Did you calculate percentages based on actual portfolio tokens?
+
+IF ANY ANSWER IS "NO" - GO BACK AND ADD THE MISSING SECTION!`;
   }
 
   // If we have zodiac sign but no portfolio

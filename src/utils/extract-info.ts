@@ -148,13 +148,13 @@ export function extractBirthDate(text: string): string | null {
         // Parse the date using JavaScript Date
         const dateStr = match[0];
         const parsedDate = new Date(dateStr);
-        
+
         if (!isNaN(parsedDate.getTime())) {
           const year = parsedDate.getFullYear();
-          const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-          const day = String(parsedDate.getDate()).padStart(2, '0');
+          const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+          const day = String(parsedDate.getDate()).padStart(2, "0");
           const formattedDate = `${year}-${month}-${day}`;
-          
+
           if (isValidBirthDate(formattedDate)) {
             return formattedDate;
           }
@@ -336,7 +336,7 @@ export function extractDetailedTradingMetrics(
     //   - **Description:** ...
     //   - Tip: ... OR
     //   - **Tip:** ...
-    
+
     // Try multiple patterns
     const patterns = [
       // Pattern 1: with ** around Description/Tip
@@ -427,9 +427,11 @@ export function extractDetailedTradingMetrics(
  * Extracts astrology insights sections from AI response
  * Looks for: Overall Market, Trading, DeFi, Balances sections
  */
-export function extractAstrologyInsights(text: string): AstrologyInsights | null {
+export function extractAstrologyInsights(
+  text: string
+): AstrologyInsights | null {
   const insights: AstrologyInsights = {};
-  
+
   // Extract Overall Market section
   const overallMarketMatch = text.match(
     /📊\s*1\.\s*Overall Market[^\n]*\n([\s\S]*?)(?=📈\s*2\.\s*Trading|📊\s*Trading Profile Metrics|$)/i
@@ -451,7 +453,9 @@ export function extractAstrologyInsights(text: string): AstrologyInsights | null
     const section = tradingMatch[1];
     const bestDaysText = extractField(section, "best.*days");
     insights.trading = {
-      bestDays: bestDaysText ? bestDaysText.split(/,\s*/).map(d => d.trim()) : undefined,
+      bestDays: bestDaysText
+        ? bestDaysText.split(/,\s*/).map((d) => d.trim())
+        : undefined,
       riskLevel: extractField(section, "risk level"),
       strategy: extractField(section, "strategy"),
     };
@@ -465,7 +469,9 @@ export function extractAstrologyInsights(text: string): AstrologyInsights | null
     const section = defiMatch[1];
     const protocolsText = extractField(section, "protocols?");
     insights.defi = {
-      favorableProtocols: protocolsText ? protocolsText.split(/,\s*/).map(p => p.trim()) : undefined,
+      favorableProtocols: protocolsText
+        ? protocolsText.split(/,\s*/).map((p) => p.trim())
+        : undefined,
       yieldStrategy: extractField(section, "yield.*strategy"),
       warning: extractField(section, "warning"),
     };
@@ -508,7 +514,10 @@ function extractField(text: string, fieldPattern: string): string | undefined {
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
-      return match[1].trim().replace(/^[:\-*\s]+/, "").trim();
+      return match[1]
+        .trim()
+        .replace(/^[:\-*\s]+/, "")
+        .trim();
     }
   }
   return undefined;
@@ -520,7 +529,7 @@ function extractField(text: string, fieldPattern: string): string | undefined {
  */
 export function removeMetricsFromText(text: string): string {
   let cleanedText = text;
-  
+
   // Step 1: Remove Trading Profile Metrics section
   const metricsPatterns = [
     // Pattern 1: With emoji and ** - SPECIFIC to Trading Profile Metrics
@@ -583,7 +592,9 @@ export function removeMetricsFromText(text: string): string {
  *   - **Stablecoins:** 3%
  *   - **Memecoins:** 2%
  */
-export function extractPortfolioBreakdown(text: string): PortfolioBreakdown | null {
+export function extractPortfolioBreakdown(
+  text: string
+): PortfolioBreakdown | null {
   const breakdown: Partial<PortfolioBreakdown> = {};
 
   // Try multiple patterns to find the Portfolio breakdown section
@@ -613,33 +624,33 @@ export function extractPortfolioBreakdown(text: string): PortfolioBreakdown | nu
 
   // Extract each category with more flexible patterns
   const categories = [
-    { 
-      key: 'blueChips', 
+    {
+      key: "blueChips",
       patterns: [
         /[-*\s]*\*\*Blue chips:\*\*\s*(\d+)%/i,
         /[-*\s]*Blue chips:\s*(\d+)%/i,
-      ]
+      ],
     },
-    { 
-      key: 'defiTokens', 
+    {
+      key: "defiTokens",
       patterns: [
         /[-*\s]*\*\*DeFi tokens:\*\*\s*(\d+)%/i,
         /[-*\s]*DeFi tokens:\s*(\d+)%/i,
-      ]
+      ],
     },
-    { 
-      key: 'stablecoins', 
+    {
+      key: "stablecoins",
       patterns: [
         /[-*\s]*\*\*Stablecoins:\*\*\s*(\d+)%/i,
         /[-*\s]*Stablecoins:\s*(\d+)%/i,
-      ]
+      ],
     },
-    { 
-      key: 'memecoins', 
+    {
+      key: "memecoins",
       patterns: [
         /[-*\s]*\*\*Memecoins:\*\*\s*(\d+)%/i,
         /[-*\s]*Memecoins:\s*(\d+)%/i,
-      ]
+      ],
     },
   ] as const;
 

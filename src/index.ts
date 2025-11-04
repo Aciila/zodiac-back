@@ -163,9 +163,11 @@ app.post("/api/zodiac-prediction", async (c) => {
     const currentInfo = extractAllInfo(message);
 
     // Priority: 1) параметри 2) з повідомлення 3) з БД
-    let walletAddress: string | undefined = paramWalletAddress || currentInfo.walletAddress;
+    let walletAddress: string | undefined =
+      paramWalletAddress || currentInfo.walletAddress;
     let birthDate: string | undefined = paramBirthDate || currentInfo.birthDate;
-    let zodiacSignKey: string | undefined = paramZodiacSign || currentInfo.zodiacSign;
+    let zodiacSignKey: string | undefined =
+      paramZodiacSign || currentInfo.zodiacSign;
 
     // Якщо є адреса гаманця та дата народження, спробуємо отримати дані з БД
     let user = null;
@@ -173,7 +175,9 @@ app.post("/api/zodiac-prediction", async (c) => {
       const birthDateObj = new Date(birthDate);
       user = await dbService.getUserByWallet(walletAddress, birthDateObj);
       if (user) {
-        console.log(`✅ Found user in DB: ${walletAddress} (birthDate: ${birthDate})`);
+        console.log(
+          `✅ Found user in DB: ${walletAddress} (birthDate: ${birthDate})`
+        );
         // Якщо в БД є дані, використовуємо їх як fallback
         if (!zodiacSignKey && user.zodiacSign) {
           zodiacSignKey = user.zodiacSign;
@@ -198,7 +202,13 @@ app.post("/api/zodiac-prediction", async (c) => {
       const normalizedDate = normalizeBirthDate(birthDate);
       zodiacKey = getZodiacSign(normalizedDate);
       zodiacInfo = getZodiacInfo(zodiacKey);
-      console.log("✅ Zodiac from birthDate:", zodiacKey, "(normalized:", normalizedDate, ")");
+      console.log(
+        "✅ Zodiac from birthDate:",
+        zodiacKey,
+        "(normalized:",
+        normalizedDate,
+        ")"
+      );
     } else if (zodiacSignKey) {
       zodiacKey = zodiacSignKey;
       zodiacInfo = getZodiacInfo(zodiacKey);
@@ -231,19 +241,34 @@ app.post("/api/zodiac-prediction", async (c) => {
     let cachedPrediction = null;
     if (walletAddress && zodiacKey) {
       const birthDateObj = birthDate ? new Date(birthDate) : undefined;
-      cachedPrediction = await dbService.getPredictionForCurrentWeek(walletAddress, birthDateObj);
+      cachedPrediction = await dbService.getPredictionForCurrentWeek(
+        walletAddress,
+        birthDateObj
+      );
       if (cachedPrediction) {
-        console.log(`✅ Found cached prediction for ${walletAddress} ${birthDate ? `(birthDate: ${birthDate})` : ''}`);
-        
+        console.log(
+          `✅ Found cached prediction for ${walletAddress} ${
+            birthDate ? `(birthDate: ${birthDate})` : ""
+          }`
+        );
+
         // Повертаємо кешований предикшн
-        const detailedMetrics = extractDetailedTradingMetrics(cachedPrediction.prediction);
-        const astrologyInsights = extractAstrologyInsights(cachedPrediction.prediction);
-        const portfolioBreakdown = extractPortfolioBreakdown(cachedPrediction.prediction);
+        const detailedMetrics = extractDetailedTradingMetrics(
+          cachedPrediction.prediction
+        );
+        const astrologyInsights = extractAstrologyInsights(
+          cachedPrediction.prediction
+        );
+        const portfolioBreakdown = extractPortfolioBreakdown(
+          cachedPrediction.prediction
+        );
         const cleanMessage = removeMetricsFromText(cachedPrediction.prediction);
-        
+
         // Розраховуємо час до нового гороскопу
-        const timeUntilNextHoroscope = calculateTimeUntilNextHoroscope(cachedPrediction.weekEnd);
-        
+        const timeUntilNextHoroscope = calculateTimeUntilNextHoroscope(
+          cachedPrediction.weekEnd
+        );
+
         return c.json({
           success: true,
           message: cleanMessage,
@@ -268,7 +293,9 @@ app.post("/api/zodiac-prediction", async (c) => {
     if (zodiacKey && zodiacKey !== null) {
       try {
         console.log("🔮 Fetching astrology data for:", zodiacKey);
-        astrologyData = await astrologyService.getWeeklyAstrologyData(zodiacKey);
+        astrologyData = await astrologyService.getWeeklyAstrologyData(
+          zodiacKey
+        );
         console.log(astrologyData);
         console.log("✅ Astrology data fetched successfully");
       } catch (error: any) {
@@ -318,44 +345,46 @@ app.post("/api/zodiac-prediction", async (c) => {
     let savedPrediction = null;
     if (walletAddress && zodiacKey) {
       const birthDateObj = birthDate ? new Date(birthDate) : undefined;
-      
+
       // Зберегти/оновити користувача
-      await dbService.getOrCreateUser(
-        walletAddress,
-        birthDateObj,
-        zodiacKey
-      );
+      await dbService.getOrCreateUser(walletAddress, birthDateObj, zodiacKey);
 
       // Зберегти предикшн
       savedPrediction = await dbService.savePrediction(
         walletAddress,
         aiResponse.response,
         zodiacKey,
-        walletData ? {
-          networth: walletData.portfolio.networth,
-          totalAssets: walletData.portfolio.totalAssets,
-          topAssets: walletData.portfolio.topAssets.slice(0, 5).map(a => ({
-            symbol: a.symbol,
-            value: a.value,
-          })),
-        } : undefined,
+        walletData
+          ? {
+              networth: walletData.portfolio.networth,
+              totalAssets: walletData.portfolio.totalAssets,
+              topAssets: walletData.portfolio.topAssets
+                .slice(0, 5)
+                .map((a) => ({
+                  symbol: a.symbol,
+                  value: a.value,
+                })),
+            }
+          : undefined,
         birthDateObj
       );
     }
 
     // Extract detailed trading metrics from AI response
     const detailedMetrics = extractDetailedTradingMetrics(aiResponse.response);
-    
+
     // Extract astrology insights sections from AI response
     const astrologyInsights = extractAstrologyInsights(aiResponse.response);
-    
+
     // Extract portfolio breakdown from AI response
     const portfolioBreakdown = extractPortfolioBreakdown(aiResponse.response);
 
     // Log metrics extraction results
     console.log("📊 Metrics extraction:", {
       detailedTradingProfile: detailedMetrics ? "found" : "NOT FOUND",
-      astrologyInsights: astrologyInsights ? `found ${Object.keys(astrologyInsights).length}/4 sections` : "NOT FOUND",
+      astrologyInsights: astrologyInsights
+        ? `found ${Object.keys(astrologyInsights).length}/4 sections`
+        : "NOT FOUND",
       portfolioBreakdown: portfolioBreakdown ? "found" : "NOT FOUND",
     });
 
@@ -376,7 +405,7 @@ app.post("/api/zodiac-prediction", async (c) => {
     const cleanMessage = removeMetricsFromText(aiResponse.response);
 
     // Calculate time until next horoscope if prediction was saved
-    const timeUntilNextHoroscope = savedPrediction 
+    const timeUntilNextHoroscope = savedPrediction
       ? calculateTimeUntilNextHoroscope(savedPrediction.weekEnd)
       : undefined;
 
@@ -400,12 +429,12 @@ app.post("/api/zodiac-prediction", async (c) => {
     if (detailedMetrics) {
       response.tradingProfile = detailedMetrics;
     }
-    
+
     // Add astrology insights if extracted
     if (astrologyInsights) {
       response.astrologyInsights = astrologyInsights;
     }
-    
+
     // Add portfolio breakdown if extracted
     if (portfolioBreakdown) {
       response.portfolioBreakdown = portfolioBreakdown;
