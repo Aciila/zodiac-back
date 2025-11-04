@@ -442,35 +442,31 @@ export function generateZodiacProfile(zodiacKey: string): string {
     return "";
   }
 
-  const sections = [
-    "## 🧬 Personality and Energy",
-    "",
-    profile.personality.description,
-    "",
-    `**Best Partners:** ${profile.personality.bestPartners.join(", ")}`,
-    "",
-    `**Not Always Easy With:** ${profile.personality.difficultWith.join(", ")}`,
-    "",
-    `**Your Superpower:** ${profile.personality.superpower}`,
-    "",
-    profile.personality.cryptoStyle,
-    "",
-    profile.personality.warning,
-    "",
-    "## 💰 Financial and Trading Profile",
-    "",
-    ...profile.financialProfile.characteristics.map(c => `- ${c}`),
-    "",
-    "## 🎯 Strengths in Crypto",
-    "",
-    ...profile.strengths.points.map(p => `- ${p}`),
-    "",
-    "## ⚠️ Weaknesses",
-    "",
-    ...profile.weaknesses.points.map(p => `- ${p}`),
-  ];
+  return `### 🧬 Personality and Energy
 
-  return sections.join("\n");
+${profile.personality.description}
+
+**Best Partners:** ${profile.personality.bestPartners.join(", ")}
+**Not Always Easy With:** ${profile.personality.difficultWith.join(", ")}
+**Your Superpower:** ${profile.personality.superpower}
+
+**Crypto Style:**
+${profile.personality.cryptoStyle}
+
+**⚠️ Warning:**
+${profile.personality.warning}
+
+### 💰 Financial and Trading Profile
+
+${profile.financialProfile.characteristics.map(c => `- ${c}`).join("\n")}
+
+### 🎯 Strengths in Crypto
+
+${profile.strengths.points.map(p => `- ${p}`).join("\n")}
+
+### ⚠️ Weaknesses
+
+${profile.weaknesses.points.map(p => `- ${p}`).join("\n")}`;
 }
 
 /**
