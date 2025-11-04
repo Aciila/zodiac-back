@@ -515,15 +515,14 @@ function extractField(text: string, fieldPattern: string): string | undefined {
 }
 
 /**
- * Removes the metrics section from the AI response text
- * This prevents duplication since metrics are returned as a separate object
- * IMPORTANT: This should NOT remove Portfolio breakdown section!
+ * Removes the metrics section AND portfolio breakdown from the AI response text
+ * This prevents duplication since both are returned as separate objects
  */
 export function removeMetricsFromText(text: string): string {
-  // Try multiple patterns to catch different variations
-  // IMPORTANT: These patterns should match "Trading Profile Metrics" specifically,
-  // NOT "Portfolio breakdown" which also uses 📊 emoji
-  const patterns = [
+  let cleanedText = text;
+  
+  // Step 1: Remove Trading Profile Metrics section
+  const metricsPatterns = [
     // Pattern 1: With emoji and ** - SPECIFIC to Trading Profile Metrics
     /\*\*📊\s*Trading Profile Metrics:\*\*[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
     // Pattern 2: Without emoji
@@ -542,12 +541,30 @@ export function removeMetricsFromText(text: string): string {
     /\n-\s*\*\*Risk appetite:\*\*[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
   ];
 
-  let cleanedText = text;
-  for (const pattern of patterns) {
+  for (const pattern of metricsPatterns) {
     const match = cleanedText.match(pattern);
     if (match) {
       cleanedText = cleanedText.replace(pattern, "").trim();
-      console.log("✂️ Removed Trading Profile Metrics section using pattern:", pattern.source.substring(0, 50) + "...");
+      console.log("✂️ Removed Trading Profile Metrics section");
+      break;
+    }
+  }
+
+  // Step 2: Remove Portfolio breakdown section
+  const portfolioPatterns = [
+    /\n\n\*\*📊\s*Portfolio breakdown:\*\*[\s\S]*$/i,
+    /\n\*\*📊\s*Portfolio breakdown:\*\*[\s\S]*$/i,
+    /\*\*📊\s*Portfolio breakdown:\*\*[\s\S]*$/i,
+    /📊\s*\*\*Portfolio breakdown:\*\*[\s\S]*$/i,
+    /\*\*Portfolio breakdown:\*\*[\s\S]*$/i,
+    /Portfolio breakdown:[\s\S]*$/i,
+  ];
+
+  for (const pattern of portfolioPatterns) {
+    const match = cleanedText.match(pattern);
+    if (match) {
+      cleanedText = cleanedText.replace(pattern, "").trim();
+      console.log("✂️ Removed Portfolio breakdown section");
       break;
     }
   }
