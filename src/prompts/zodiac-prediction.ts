@@ -172,7 +172,17 @@ export const getZodiacPredictionPrompt = (context: {
       ? generateZodiacProfile(zodiacKey)
       : "";
     
-    return `User: ${userMessage}
+    return `🚨🚨🚨 CRITICAL: YOUR RESPONSE MUST END WITH THESE TWO SECTIONS 🚨🚨🚨
+
+1. **📊 Trading Profile Metrics:** (5 metrics: Risk appetite, Impulse level, Timing instincts, Panic factor, DeFi complexity tolerance)
+2. **📊 Portfolio breakdown:** (4 categories: Blue chips, DeFi tokens, Stablecoins, Memecoins)
+
+These sections are MANDATORY and must be the LAST thing in your response!
+See detailed format at the end of this prompt.
+
+═══════════════════════════════════════════════════════════════
+
+User: ${userMessage}
 
 === PREDICTION INFORMATION ===
 
@@ -337,6 +347,8 @@ After your main prediction text, you MUST include these TWO sections in this EXA
 SECTION 1: TRADING PROFILE METRICS (MANDATORY - ALL 5 REQUIRED)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+⚠️ REMEMBER: After your main text, add this section EXACTLY as shown below:
+
 **📊 Trading Profile Metrics:**
 
 - **Risk appetite:** 6/10  
@@ -368,7 +380,8 @@ SECTION 1: TRADING PROFILE METRICS (MANDATORY - ALL 5 REQUIRED)
 SECTION 2: PORTFOLIO BREAKDOWN (MANDATORY - MUST BE LAST)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-After Trading Profile Metrics, you MUST add Portfolio Breakdown.
+⚠️ REMEMBER: After Trading Profile Metrics, you MUST add Portfolio Breakdown.
+This MUST be the LAST section of your entire response!
 
 **Token Categories (for calculation):**
 - **Blue chips:** BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC
