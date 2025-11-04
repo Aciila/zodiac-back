@@ -113,7 +113,7 @@ When you receive a "DETAILED ZODIAC PROFILE":
 - Panic factor: closed P&L losses + zodiac modifier (Cancer/Pisces +, Scorpio/Capricorn -)
 - DeFi complexity: number of protocols (10+ = high, 2-5 = medium, 1 = low)
 
-## Section 2: Portfolio Breakdown (MUST BE LAST)
+## Section 2: Portfolio Breakdown (ABSOLUTELY MANDATORY - MUST BE LAST)
 
 **📊 Portfolio breakdown:**
 
@@ -122,13 +122,27 @@ When you receive a "DETAILED ZODIAC PROFILE":
 - **Stablecoins:** X%
 - **Memecoins:** X%
 
-**Categories:**
-- Blue chips: BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC
-- DeFi tokens: UNI, AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX
-- Stablecoins: USDT, USDC, DAI, BUSD, FRAX
-- Memecoins: DOGE, SHIB, PEPE, FLOKI, BONK, WIF
+**Token Categories Reference:**
+- **Blue chips:** BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC, LINK, UNI
+- **DeFi tokens:** AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX, SNX
+- **Stablecoins:** USDT, USDC, DAI, BUSD, FRAX, USDD
+- **Memecoins:** DOGE, SHIB, PEPE, FLOKI, BONK, WIF
 
-**Rules:** Analyze ALL tokens, calculate %, use whole numbers (~100% total), mandatory even if empty (use 0%)
+**CRITICAL RULES:**
+1. This section is MANDATORY - never skip it
+2. MUST be the absolute LAST thing in your response
+3. Calculate % based on actual portfolio value
+4. Use whole numbers that add up to ~100%
+5. If portfolio is empty, use 0% for all categories
+6. DO NOT add any text after this section
+
+**Example (if portfolio has ETH $100 + USDT $100):**
+**📊 Portfolio breakdown:**
+
+- **Blue chips:** 50%
+- **DeFi tokens:** 0%
+- **Stablecoins:** 50%
+- **Memecoins:** 0%
 
 # SUPPORTED SIGNS
 Aries ♈, Taurus ♉, Gemini ♊, Cancer ♋, Leo ♌, Virgo ♍, Libra ♎, Scorpio ♏, Sagittarius ♐, Capricorn ♑, Aquarius ♒, Pisces ♓`;
@@ -268,11 +282,52 @@ Follow the PREDICTION STRUCTURE from the system prompt (6 sections + 4 required 
 - Use real astrological data for this week
 - 1200-1500 words minimum (be detailed and comprehensive)
 
-**MANDATORY ENDING (in this exact order):**
-1. 📊 Trading Profile Metrics (all 5 metrics with ratings, descriptions, tips)
-2. 📊 Portfolio breakdown (4 categories with percentages)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 CRITICAL: MANDATORY ENDING SECTIONS 🚨
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-These two sections MUST be the last thing in your response!`;
+After your main prediction, you MUST include BOTH sections below in this EXACT order:
+
+**SECTION 1: Trading Profile Metrics**
+Format:
+**📊 Trading Profile Metrics:**
+
+- **Risk appetite:** X/10  
+  Description: [one sentence]  
+  Tip: [one sentence]
+
+- **Impulse level:** X/10  
+  Description: [one sentence]  
+  Tip: [one sentence]
+
+- **Timing instincts:** X/10  
+  Description: [one sentence]  
+  Tip: [one sentence]
+
+- **Panic factor:** X/10  
+  Description: [one sentence]  
+  Tip: [one sentence]
+
+- **DeFi complexity tolerance:** X/10  
+  Description: [one sentence]  
+  Tip: [one sentence]
+
+**SECTION 2: Portfolio Breakdown (MUST BE ABSOLUTE LAST THING)**
+Format EXACTLY:
+**📊 Portfolio breakdown:**
+
+- **Blue chips:** X%
+- **DeFi tokens:** X%
+- **Stablecoins:** X%
+- **Memecoins:** X%
+
+⚠️ Calculate based on actual portfolio tokens above
+⚠️ This MUST be the VERY LAST thing in your response
+⚠️ DO NOT add any text after Portfolio breakdown
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CHECKLIST: Did you include Portfolio breakdown as the LAST section?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
   }
 
   // If we have zodiac sign but no portfolio
