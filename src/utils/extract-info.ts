@@ -517,28 +517,29 @@ function extractField(text: string, fieldPattern: string): string | undefined {
 /**
  * Removes the metrics section from the AI response text
  * This prevents duplication since metrics are returned as a separate object
+ * IMPORTANT: This should NOT remove Portfolio breakdown section!
  */
 export function removeMetricsFromText(text: string): string {
   // Try multiple patterns to catch different variations
+  // IMPORTANT: These patterns should match "Trading Profile Metrics" specifically,
+  // NOT "Portfolio breakdown" which also uses 📊 emoji
   const patterns = [
-    // Pattern 1: With emoji and **
-    /\*\*📊\s*Trading Profile Metrics:\*\*[\s\S]*$/i,
+    // Pattern 1: With emoji and ** - SPECIFIC to Trading Profile Metrics
+    /\*\*📊\s*Trading Profile Metrics:\*\*[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
     // Pattern 2: Without emoji
-    /\*\*Trading Profile Metrics:\*\*[\s\S]*$/i,
+    /\*\*Trading Profile Metrics:\*\*[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
     // Pattern 3: With different spacing
-    /📊\s*\*\*Trading Profile Metrics:\*\*[\s\S]*$/i,
+    /📊\s*\*\*Trading Profile Metrics:\*\*[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
     // Pattern 4: Just the heading without **
-    /Trading Profile Metrics:[\s\S]*$/i,
+    /Trading Profile Metrics:[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
     // Pattern 5: With ### markdown heading
-    /###\s*📊\s*Trading Profile Metrics[\s\S]*$/i,
+    /###\s*📊\s*Trading Profile Metrics[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
     // Pattern 6: With ## markdown heading
-    /##\s*📊\s*Trading Profile Metrics[\s\S]*$/i,
-    // Pattern 7: Catch any line starting with "**📊"
-    /\n\*\*📊[\s\S]*$/i,
-    // Pattern 8: Catch metrics section with newlines before
-    /\n+\*\*📊\s*Trading Profile Metrics[\s\S]*$/i,
-    // Pattern 9: Very aggressive - remove from "- **Risk appetite:**" onwards
-    /\n-\s*\*\*Risk appetite:\*\*[\s\S]*$/i,
+    /##\s*📊\s*Trading Profile Metrics[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
+    // Pattern 7: Catch metrics section with newlines before
+    /\n+\*\*📊\s*Trading Profile Metrics[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
+    // Pattern 8: Very aggressive - remove from "- **Risk appetite:**" onwards but stop at Portfolio breakdown
+    /\n-\s*\*\*Risk appetite:\*\*[\s\S]*?(?=\n\*\*📊\s*Portfolio breakdown:|\n\n\*\*📊|$)/i,
   ];
 
   let cleanedText = text;
@@ -546,7 +547,7 @@ export function removeMetricsFromText(text: string): string {
     const match = cleanedText.match(pattern);
     if (match) {
       cleanedText = cleanedText.replace(pattern, "").trim();
-      console.log("✂️ Removed metrics section using pattern:", pattern.source);
+      console.log("✂️ Removed Trading Profile Metrics section using pattern:", pattern.source.substring(0, 50) + "...");
       break;
     }
   }
@@ -568,36 +569,80 @@ export function removeMetricsFromText(text: string): string {
 export function extractPortfolioBreakdown(text: string): PortfolioBreakdown | null {
   const breakdown: Partial<PortfolioBreakdown> = {};
 
-  // Try to find the Portfolio breakdown section
-  const sectionMatch = text.match(
-    /\*\*📊\s*Portfolio breakdown:\*\*[\s\S]*?(?=\n\n|\n\*\*|$)/i
-  );
+  // Try multiple patterns to find the Portfolio breakdown section
+  const patterns = [
+    /\*\*📊\s*Portfolio breakdown:\*\*[\s\S]*?(?=\n\n|\n\*\*[^*]|$)/i,
+    /📊\s*\*\*Portfolio breakdown:\*\*[\s\S]*?(?=\n\n|\n\*\*[^*]|$)/i,
+    /\*\*Portfolio breakdown:\*\*[\s\S]*?(?=\n\n|\n\*\*[^*]|$)/i,
+    /Portfolio breakdown:[\s\S]*?(?=\n\n|$)/i,
+  ];
 
-  if (!sectionMatch) {
-    console.warn("⚠️ Portfolio breakdown section not found");
+  let section: string | null = null;
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      section = match[0];
+      console.log("✅ Found portfolio breakdown section");
+      break;
+    }
+  }
+
+  if (!section) {
+    console.warn("⚠️ Portfolio breakdown section not found in AI response");
+    // Debug: show last 500 chars of response to see what's there
+    console.log("Last 500 chars of AI response:", text.slice(-500));
     return null;
   }
 
-  const section = sectionMatch[0];
-
-  // Extract each category
+  // Extract each category with more flexible patterns
   const categories = [
-    { key: 'blueChips', pattern: /Blue chips:\s*(\d+)%/i },
-    { key: 'defiTokens', pattern: /DeFi tokens:\s*(\d+)%/i },
-    { key: 'stablecoins', pattern: /Stablecoins:\s*(\d+)%/i },
-    { key: 'memecoins', pattern: /Memecoins:\s*(\d+)%/i },
+    { 
+      key: 'blueChips', 
+      patterns: [
+        /[-*\s]*\*\*Blue chips:\*\*\s*(\d+)%/i,
+        /[-*\s]*Blue chips:\s*(\d+)%/i,
+      ]
+    },
+    { 
+      key: 'defiTokens', 
+      patterns: [
+        /[-*\s]*\*\*DeFi tokens:\*\*\s*(\d+)%/i,
+        /[-*\s]*DeFi tokens:\s*(\d+)%/i,
+      ]
+    },
+    { 
+      key: 'stablecoins', 
+      patterns: [
+        /[-*\s]*\*\*Stablecoins:\*\*\s*(\d+)%/i,
+        /[-*\s]*Stablecoins:\s*(\d+)%/i,
+      ]
+    },
+    { 
+      key: 'memecoins', 
+      patterns: [
+        /[-*\s]*\*\*Memecoins:\*\*\s*(\d+)%/i,
+        /[-*\s]*Memecoins:\s*(\d+)%/i,
+      ]
+    },
   ] as const;
 
-  for (const { key, pattern } of categories) {
-    const match = section.match(pattern);
-    if (match) {
-      const value = parseInt(match[1], 10);
-      if (value >= 0 && value <= 100) {
-        breakdown[key] = value;
-        console.log(`✅ Extracted ${key}: ${value}%`);
+  for (const { key, patterns } of categories) {
+    let found = false;
+    for (const pattern of patterns) {
+      const match = section.match(pattern);
+      if (match) {
+        const value = parseInt(match[1], 10);
+        if (value >= 0 && value <= 100) {
+          breakdown[key] = value;
+          console.log(`✅ Extracted ${key}: ${value}%`);
+          found = true;
+          break;
+        }
       }
-    } else {
+    }
+    if (!found) {
       console.warn(`⚠️ Could not extract ${key} from portfolio breakdown`);
+      console.log(`Section content:\n${section.substring(0, 300)}`);
     }
   }
 

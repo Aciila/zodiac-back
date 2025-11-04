@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPrediction extends Document {
   walletAddress: string;
+  birthDate?: Date; // Дата народження для унікальної ідентифікації користувача
   weekStart: Date; // Понеділок 00:00 UTC
   weekEnd: Date;   // Неділя 23:59 UTC
   prediction: string;
@@ -24,6 +25,11 @@ const PredictionSchema: Schema = new Schema(
       type: String,
       required: true,
       lowercase: true,
+      index: true,
+    },
+    birthDate: {
+      type: Date,
+      required: false,
       index: true,
     },
     weekStart: {
@@ -53,7 +59,8 @@ const PredictionSchema: Schema = new Schema(
   }
 );
 
-// Compound index для швидкого пошуку по гаманцю та тижню
-PredictionSchema.index({ walletAddress: 1, weekStart: 1 }, { unique: true });
+// Compound index для швидкого пошуку по гаманцю, даті народження та тижню
+// Унікальність: один гаманець + одна дата народження = один предикшн на тиждень
+PredictionSchema.index({ walletAddress: 1, birthDate: 1, weekStart: 1 }, { unique: true });
 
 export const Prediction = mongoose.model<IPrediction>('Prediction', PredictionSchema);

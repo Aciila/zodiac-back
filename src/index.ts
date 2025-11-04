@@ -167,16 +167,14 @@ app.post("/api/zodiac-prediction", async (c) => {
     let birthDate: string | undefined = paramBirthDate || currentInfo.birthDate;
     let zodiacSignKey: string | undefined = paramZodiacSign || currentInfo.zodiacSign;
 
-    // Якщо є адреса гаманця, спробуємо отримати дані з БД
+    // Якщо є адреса гаманця та дата народження, спробуємо отримати дані з БД
     let user = null;
-    if (walletAddress) {
-      user = await dbService.getUserByWallet(walletAddress);
+    if (walletAddress && birthDate) {
+      const birthDateObj = new Date(birthDate);
+      user = await dbService.getUserByWallet(walletAddress, birthDateObj);
       if (user) {
-        console.log(`✅ Found user in DB: ${walletAddress}`);
+        console.log(`✅ Found user in DB: ${walletAddress} (birthDate: ${birthDate})`);
         // Якщо в БД є дані, використовуємо їх як fallback
-        if (!birthDate && user.birthDate) {
-          birthDate = user.birthDate.toISOString().split('T')[0];
-        }
         if (!zodiacSignKey && user.zodiacSign) {
           zodiacSignKey = user.zodiacSign;
         }
@@ -232,9 +230,10 @@ app.post("/api/zodiac-prediction", async (c) => {
     // Перевірка чи є збережений предикшн для поточного тижня
     let cachedPrediction = null;
     if (walletAddress && zodiacKey) {
-      cachedPrediction = await dbService.getPredictionForCurrentWeek(walletAddress);
+      const birthDateObj = birthDate ? new Date(birthDate) : undefined;
+      cachedPrediction = await dbService.getPredictionForCurrentWeek(walletAddress, birthDateObj);
       if (cachedPrediction) {
-        console.log(`✅ Found cached prediction for ${walletAddress}`);
+        console.log(`✅ Found cached prediction for ${walletAddress} ${birthDate ? `(birthDate: ${birthDate})` : ''}`);
         
         // Повертаємо кешований предикшн
         const detailedMetrics = extractDetailedTradingMetrics(cachedPrediction.prediction);
@@ -318,10 +317,12 @@ app.post("/api/zodiac-prediction", async (c) => {
     // Зберегти користувача та предикшн в БД
     let savedPrediction = null;
     if (walletAddress && zodiacKey) {
+      const birthDateObj = birthDate ? new Date(birthDate) : undefined;
+      
       // Зберегти/оновити користувача
       await dbService.getOrCreateUser(
         walletAddress,
-        birthDate ? new Date(birthDate) : undefined,
+        birthDateObj,
         zodiacKey
       );
 
@@ -337,7 +338,8 @@ app.post("/api/zodiac-prediction", async (c) => {
             symbol: a.symbol,
             value: a.value,
           })),
-        } : undefined
+        } : undefined,
+        birthDateObj
       );
     }
 

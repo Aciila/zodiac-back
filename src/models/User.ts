@@ -13,13 +13,13 @@ const UserSchema: Schema = new Schema(
     walletAddress: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       index: true,
     },
     birthDate: {
       type: Date,
       required: false,
+      index: true,
     },
     zodiacSign: {
       type: String,
@@ -30,5 +30,8 @@ const UserSchema: Schema = new Schema(
     timestamps: true,
   }
 );
+
+// Compound index для унікальності: один гаманець може мати кілька користувачів з різними датами народження
+UserSchema.index({ walletAddress: 1, birthDate: 1 }, { unique: true, sparse: true });
 
 export const User = mongoose.model<IUser>('User', UserSchema);

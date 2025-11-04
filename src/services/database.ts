@@ -25,11 +25,20 @@ export class DatabaseService {
 
   /**
    * Отримати або створити користувача
+   * Унікальність визначається комбінацією walletAddress + birthDate
    */
   async getOrCreateUser(walletAddress: string, birthDate?: Date, zodiacSign?: string): Promise<IUser> {
     const normalizedAddress = walletAddress.toLowerCase();
     
-    let user = await User.findOne({ walletAddress: normalizedAddress });
+    // Шукаємо користувача по walletAddress + birthDate
+    const query: any = { walletAddress: normalizedAddress };
+    if (birthDate) {
+      query.birthDate = birthDate;
+    } else {
+      query.birthDate = { $exists: false };
+    }
+    
+    let user = await User.findOne(query);
     
     if (!user) {
       user = await User.create({
@@ -37,23 +46,28 @@ export class DatabaseService {
         birthDate,
         zodiacSign,
       });
-      console.log(`✅ Created new user: ${normalizedAddress}`);
-    } else if (birthDate || zodiacSign) {
-      // Оновлюємо дані якщо передані нові
-      if (birthDate) user.birthDate = birthDate;
-      if (zodiacSign) user.zodiacSign = zodiacSign;
+      console.log(`✅ Created new user: ${normalizedAddress} ${birthDate ? `(birthDate: ${birthDate.toISOString().split('T')[0]})` : ''}`);
+    } else if (zodiacSign && user.zodiacSign !== zodiacSign) {
+      // Оновлюємо zodiacSign якщо змінився
+      user.zodiacSign = zodiacSign;
       await user.save();
-      console.log(`✅ Updated user: ${normalizedAddress}`);
+      console.log(`✅ Updated user zodiacSign: ${normalizedAddress}`);
     }
     
     return user;
   }
 
   /**
-   * Отримати користувача по адресі гаманця
+   * Отримати користувача по адресі гаманця та даті народження
    */
-  async getUserByWallet(walletAddress: string): Promise<IUser | null> {
-    return User.findOne({ walletAddress: walletAddress.toLowerCase() });
+  async getUserByWallet(walletAddress: string, birthDate?: Date): Promise<IUser | null> {
+    const query: any = { walletAddress: walletAddress.toLowerCase() };
+    if (birthDate) {
+      query.birthDate = birthDate;
+    } else {
+      query.birthDate = { $exists: false };
+    }
+    return User.findOne(query);
   }
 
   /**
@@ -82,14 +96,24 @@ export class DatabaseService {
   /**
    * Отримати предикшн для поточного тижня
    */
-  async getPredictionForCurrentWeek(walletAddress: string): Promise<IPrediction | null> {
+  async getPredictionForCurrentWeek(walletAddress: string, birthDate?: Date): Promise<IPrediction | null> {
     const weekStart = this.getCurrentWeekStart();
     const normalizedAddress = walletAddress.toLowerCase();
     
-    return Prediction.findOne({
+    const query: any = {
       walletAddress: normalizedAddress,
       weekStart: weekStart,
-    });
+    };
+    
+    // Додаємо birthDate до запиту якщо він є
+    if (birthDate) {
+      query.birthDate = birthDate;
+    } else {
+      // Якщо birthDate не передано, шукаємо предикшн без birthDate
+      query.birthDate = { $exists: false };
+    }
+    
+    return Prediction.findOne(query);
   }
 
   /**
@@ -99,21 +123,31 @@ export class DatabaseService {
     walletAddress: string,
     prediction: string,
     zodiacSign: string,
-    portfolioSnapshot?: any
+    portfolioSnapshot?: any,
+    birthDate?: Date
   ): Promise<IPrediction> {
     const weekStart = this.getCurrentWeekStart();
     const weekEnd = this.getWeekEnd(weekStart);
     const normalizedAddress = walletAddress.toLowerCase();
 
     // Видаляємо старий предикшн для цього тижня (якщо є)
-    await Prediction.deleteOne({
+    const deleteQuery: any = {
       walletAddress: normalizedAddress,
       weekStart: weekStart,
-    });
+    };
+    
+    if (birthDate) {
+      deleteQuery.birthDate = birthDate;
+    } else {
+      deleteQuery.birthDate = { $exists: false };
+    }
+    
+    await Prediction.deleteOne(deleteQuery);
 
     // Створюємо новий
     const newPrediction = await Prediction.create({
       walletAddress: normalizedAddress,
+      birthDate: birthDate || undefined,
       weekStart,
       weekEnd,
       prediction,
@@ -121,7 +155,7 @@ export class DatabaseService {
       portfolioSnapshot,
     });
 
-    console.log(`✅ Saved prediction for ${normalizedAddress} (week: ${weekStart.toISOString()})`);
+    console.log(`✅ Saved prediction for ${normalizedAddress} ${birthDate ? `(birthDate: ${birthDate.toISOString().split('T')[0]})` : ''} (week: ${weekStart.toISOString()})`);
     return newPrediction;
   }
 
