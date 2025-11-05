@@ -585,6 +585,87 @@ export function removeMetricsFromText(text: string): string {
 }
 
 /**
+ * Categorizes a token symbol into one of the portfolio categories
+ */
+function categorizeToken(symbol: string): keyof PortfolioBreakdown {
+  const upperSymbol = symbol.toUpperCase();
+  
+  // Blue chips (major cryptocurrencies)
+  const blueChips = ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'AVAX', 'DOT', 'MATIC', 'LINK', 'UNI', 'ATOM', 'XRP', 'LTC', 'BCH', 'ETC', 'XLM', 'ALGO', 'VET', 'ICP', 'FIL', 'NEAR', 'APT', 'ARB', 'OP'];
+  
+  // DeFi tokens
+  const defiTokens = ['AAVE', 'SUSHI', 'CAKE', 'MKR', 'COMP', 'CRV', 'LDO', 'GMX', 'SNX', 'YFI', 'BAL', 'RUNE', 'ALPHA', 'INJ', 'DYDX', 'GRT', '1INCH', 'CVX', 'FXS', 'RPL'];
+  
+  // Stablecoins
+  const stablecoins = ['USDT', 'USDC', 'DAI', 'BUSD', 'FRAX', 'TUSD', 'USDD', 'USDP', 'GUSD', 'LUSD', 'UST', 'USTC'];
+  
+  // Memecoins
+  const memecoins = ['DOGE', 'SHIB', 'PEPE', 'FLOKI', 'BONK', 'WIF', 'ELON', 'BABYDOGE', 'SAMO', 'WOJAK', 'LADYS', 'TURBO', 'MONG'];
+  
+  if (blueChips.includes(upperSymbol)) return 'blueChips';
+  if (defiTokens.includes(upperSymbol)) return 'defiTokens';
+  if (stablecoins.includes(upperSymbol)) return 'stablecoins';
+  if (memecoins.includes(upperSymbol)) return 'memecoins';
+  
+  // Default to blue chips for unknown tokens
+  return 'blueChips';
+}
+
+/**
+ * Calculates portfolio breakdown from portfolio data (fallback)
+ */
+export function calculatePortfolioBreakdown(
+  portfolioData: Array<{ symbol: string; value: string }>
+): PortfolioBreakdown {
+  const totals = {
+    blueChips: 0,
+    defiTokens: 0,
+    stablecoins: 0,
+    memecoins: 0,
+  };
+  
+  let totalValue = 0;
+  
+  // Calculate total value for each category
+  for (const asset of portfolioData) {
+    const value = parseFloat(asset.value);
+    if (!isNaN(value) && value > 0) {
+      const category = categorizeToken(asset.symbol);
+      totals[category] += value;
+      totalValue += value;
+    }
+  }
+  
+  // Convert to percentages
+  const breakdown: PortfolioBreakdown = {
+    blueChips: 0,
+    defiTokens: 0,
+    stablecoins: 0,
+    memecoins: 0,
+  };
+  
+  if (totalValue > 0) {
+    breakdown.blueChips = Math.round((totals.blueChips / totalValue) * 100);
+    breakdown.defiTokens = Math.round((totals.defiTokens / totalValue) * 100);
+    breakdown.stablecoins = Math.round((totals.stablecoins / totalValue) * 100);
+    breakdown.memecoins = Math.round((totals.memecoins / totalValue) * 100);
+    
+    // Ensure total is 100% by adjusting the largest category
+    const total = breakdown.blueChips + breakdown.defiTokens + breakdown.stablecoins + breakdown.memecoins;
+    if (total !== 100) {
+      const diff = 100 - total;
+      const maxCategory = Object.keys(breakdown).reduce((a, b) => 
+        breakdown[a as keyof PortfolioBreakdown] > breakdown[b as keyof PortfolioBreakdown] ? a : b
+      ) as keyof PortfolioBreakdown;
+      breakdown[maxCategory] += diff;
+    }
+  }
+  
+  console.log('📊 Calculated portfolio breakdown (fallback):', breakdown);
+  return breakdown;
+}
+
+/**
  * Extracts portfolio breakdown from AI response
  * Format: **📊 Portfolio breakdown:**
  *   - **Blue chips:** 85%

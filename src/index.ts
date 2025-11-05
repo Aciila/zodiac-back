@@ -27,6 +27,7 @@ import {
   extractAstrologyInsights,
   removeMetricsFromText,
   extractPortfolioBreakdown,
+  calculatePortfolioBreakdown,
 } from "./utils/extract-info.js";
 import { detectLanguage } from "./utils/language-detector.js";
 import { calculateTimeUntilNextHoroscope } from "./utils/time-calculator.js";
@@ -259,9 +260,16 @@ app.post("/api/zodiac-prediction", async (c) => {
         const astrologyInsights = extractAstrologyInsights(
           cachedPrediction.prediction
         );
-        const portfolioBreakdown = extractPortfolioBreakdown(
+        let portfolioBreakdown = extractPortfolioBreakdown(
           cachedPrediction.prediction
         );
+        
+        // Fallback: якщо не знайдено portfolio breakdown, розрахувати його
+        if (!portfolioBreakdown && walletData?.portfolio?.topAssets) {
+          console.log('⚠️ Portfolio breakdown not found in cached prediction, calculating fallback...');
+          portfolioBreakdown = calculatePortfolioBreakdown(walletData.portfolio.topAssets);
+        }
+        
         const cleanMessage = removeMetricsFromText(cachedPrediction.prediction);
 
         // Розраховуємо час до нового гороскопу
@@ -377,15 +385,22 @@ app.post("/api/zodiac-prediction", async (c) => {
     const astrologyInsights = extractAstrologyInsights(aiResponse.response);
 
     // Extract portfolio breakdown from AI response
-    const portfolioBreakdown = extractPortfolioBreakdown(aiResponse.response);
+    let portfolioBreakdown = extractPortfolioBreakdown(aiResponse.response);
+    
+    // Fallback: якщо AI не згенерувала portfolio breakdown, розрахувати його
+    if (!portfolioBreakdown && walletData?.portfolio?.topAssets) {
+      console.log('⚠️ Portfolio breakdown not found in AI response, calculating fallback...');
+      portfolioBreakdown = calculatePortfolioBreakdown(walletData.portfolio.topAssets);
+    }
 
     // Log metrics extraction results
+    const wasCalculated = !extractPortfolioBreakdown(aiResponse.response) && portfolioBreakdown;
     console.log("📊 Metrics extraction:", {
       detailedTradingProfile: detailedMetrics ? "found" : "NOT FOUND",
       astrologyInsights: astrologyInsights
         ? `found ${Object.keys(astrologyInsights).length}/4 sections`
         : "NOT FOUND",
-      portfolioBreakdown: portfolioBreakdown ? "found" : "NOT FOUND",
+      portfolioBreakdown: portfolioBreakdown ? (wasCalculated ? "calculated (fallback)" : "found") : "NOT FOUND",
     });
 
     // If metrics not found, log AI response for debugging

@@ -53,14 +53,27 @@ Calculate based on: portfolio diversification, transaction frequency, P&L, zodia
 
 ## Section 2: Portfolio Breakdown (MANDATORY - MUST BE LAST!)
 
-**📊 Portfolio breakdown:**
-- **Blue chips:** X% (BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC)
-- **DeFi tokens:** X% (AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX)
-- **Stablecoins:** X% (USDT, USDC, DAI, BUSD, FRAX)
-- **Memecoins:** X% (DOGE, SHIB, PEPE, FLOKI, BONK, WIF)
+🚨 CRITICAL: You MUST analyze the user's portfolio and categorize ALL tokens into these 4 categories:
 
-⚠️ Calculate % from portfolio value, use whole numbers (~100% total)
-⚠️ MUST be absolute LAST thing - NO text after this!
+**📊 Portfolio breakdown:**
+- **Blue chips:** X% (BTC, ETH, BNB, SOL, ADA, AVAX, DOT, MATIC, LINK, UNI, etc.)
+- **DeFi tokens:** X% (AAVE, SUSHI, CAKE, MKR, COMP, CRV, LDO, GMX, etc.)
+- **Stablecoins:** X% (USDT, USDC, DAI, BUSD, FRAX, TUSD, etc.)
+- **Memecoins:** X% (DOGE, SHIB, PEPE, FLOKI, BONK, WIF, etc.)
+
+⚠️ RULES:
+1. Calculate % based on USD value of each token in portfolio
+2. Use whole numbers (total should be ~100%)
+3. If token doesn't fit any category, assign to closest match
+4. This section MUST be the absolute LAST thing in your response
+5. NO text, emojis, or comments after this section!
+
+Example format:
+**📊 Portfolio breakdown:**
+- **Blue chips:** 85%
+- **DeFi tokens:** 10%
+- **Stablecoins:** 3%
+- **Memecoins:** 2%
 
 # SUPPORTED SIGNS
 Aries ♈, Taurus ♉, Gemini ♊, Cancer ♋, Leo ♌, Virgo ♍, Libra ♎, Scorpio ♏, Sagittarius ♐, Capricorn ♑, Aquarius ♒, Pisces ♓`;
